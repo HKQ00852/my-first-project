@@ -46,8 +46,24 @@ def lang_bucket(lang: str | None) -> str:
     return "yue"
 
 
+def hkbu_key() -> str:
+    # Prefer HKBU_API_KEY; also accept mistaken paste into ZHIPUAI_API_KEY
+    # when it looks like a university UUID key (no dot).
+    primary = _env("HKBU_API_KEY")
+    if primary:
+        return primary
+    legacy = _env("ZHIPUAI_API_KEY")
+    if legacy and "." not in legacy:
+        return legacy
+    return ""
+
+
 def zhipu_key() -> str:
-    return _env("ZHIPUAI_API_KEY")
+    key = _env("ZHIPUAI_API_KEY")
+    # UUID-only keys are treated as HKBU, not Zhipu.
+    if key and "." not in key and not _env("HKBU_API_KEY"):
+        return ""
+    return key
 
 
 def openai_key() -> str:
@@ -78,14 +94,22 @@ def deepseek_chat_model() -> str:
     return _env("DEEPSEEK_CHAT_MODEL", "deepseek-chat")
 
 
+def hkbu_base_url() -> str:
+    return _env("HKBU_API_BASE", "https://genai.hkbu.edu.hk/general/rest")
+
+
+def hkbu_deployment() -> str:
+    return _env("HKBU_DEPLOYMENT", "gpt-4.1-mini")
+
+
+def hkbu_api_version() -> str:
+    return _env("HKBU_API_VERSION", "2024-05-01-preview")
+
+
 def asr_provider(lang: str | None = None) -> str:
     """
-    Default routing:
-      粵 (zh-Hant) → openai Whisper
-      普 (zh-Hans) → zhipu ASR
-      EN           → openai Whisper
-    Override with ASR_PROVIDER_YUE / ASR_PROVIDER_CMN / ASR_PROVIDER_EN
-    or legacy ASR_PROVIDER for all locales.
+    Video ASR still needs OpenAI Whisper or Zhipu ASR.
+    HKBU GenAI gateway is chat-only (no Whisper endpoint found).
     """
     bucket = lang_bucket(lang)
     legacy = _env("ASR_PROVIDER").lower()
@@ -98,7 +122,6 @@ def asr_provider(lang: str | None = None) -> str:
     if provider not in {"zhipu", "openai"}:
         provider = "openai" if bucket != "cmn" else "zhipu"
 
-    # If chosen key missing, fall back to the other when available.
     if provider == "openai" and not openai_key() and zhipu_key():
         return "zhipu"
     if provider == "zhipu" and not zhipu_key() and openai_key():
@@ -108,37 +131,49 @@ def asr_provider(lang: str | None = None) -> str:
 
 def diagnosis_provider(lang: str | None = None) -> str:
     """
-    Default routing:
-      粵 (zh-Hant) → openai
-      普 (zh-Hans) → zhipu
-      EN           → openai
-    Override with DIAGNOSIS_PROVIDER_YUE / _CMN / _EN
-    or legacy DIAGNOSIS_PROVIDER for all locales.
+    Default for HK students:
+      all UI languages → HKBU GenAI (Azure-shaped OpenAI models via school gateway)
+    Falls back to zhipu / openai / deepseek / local if configured.
     """
     bucket = lang_bucket(lang)
     legacy = _env("DIAGNOSIS_PROVIDER").lower()
+    default = "hkbu" if hkbu_key() else ("zhipu" if bucket == "cmn" else "openai")
     per_lang = {
-        "yue": _env("DIAGNOSIS_PROVIDER_YUE", legacy or "openai").lower(),
-        "cmn": _env("DIAGNOSIS_PROVIDER_CMN", legacy or "zhipu").lower(),
-        "en": _env("DIAGNOSIS_PROVIDER_EN", legacy or "openai").lower(),
+        "yue": _env("DIAGNOSIS_PROVIDER_YUE", legacy or default).lower(),
+        "cmn": _env("DIAGNOSIS_PROVIDER_CMN", legacy or default).lower(),
+        "en": _env("DIAGNOSIS_PROVIDER_EN", legacy or default).lower(),
     }
     provider = per_lang[bucket]
-    if provider not in {"zhipu", "openai", "deepseek", "local"}:
-        provider = "openai" if bucket != "cmn" else "zhipu"
+    if provider not in {"hkbu", "zhipu", "openai", "deepseek", "local"}:
+        provider = default
 
+    if provider == "hkbu" and not hkbu_key():
+        if zhipu_key():
+            return "zhipu"
+        if openai_key():
+            return "openai"
+        if deepseek_key():
+            return "deepseek"
+        return "local"
     if provider == "openai" and not openai_key():
+        if hkbu_key():
+            return "hkbu"
         if zhipu_key():
             return "zhipu"
         if deepseek_key():
             return "deepseek"
         return "local"
     if provider == "zhipu" and not zhipu_key():
+        if hkbu_key():
+            return "hkbu"
         if openai_key():
             return "openai"
         if deepseek_key():
             return "deepseek"
         return "local"
     if provider == "deepseek" and not deepseek_key():
+        if hkbu_key():
+            return "hkbu"
         if zhipu_key():
             return "zhipu"
         if openai_key():

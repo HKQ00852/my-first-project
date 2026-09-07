@@ -262,7 +262,9 @@
                 </p>
                 <p class="result-source">
                   <span data-i18n="result.source">{{ t('result.source') }}</span>
-                  {% if result.source == 'zhipu' %}
+                  {% if result.source == 'hkbu' %}
+                    <span data-i18n="result.source_hkbu">{{ t('result.source_hkbu') }}</span>
+                  {% elif result.source == 'zhipu' %}
                     <span data-i18n="result.source_zhipu">{{ t('result.source_zhipu') }}</span>
                   {% elif result.source == 'openai' %}
                     <span data-i18n="result.source_openai">{{ t('result.source_openai') }}</span>

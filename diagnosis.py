@@ -120,6 +120,39 @@ def extract_json(raw_output: str | None) -> dict | None:
         return None
 
 
+def diagnose_with_hkbu(script: str) -> str:
+    api_key = config.hkbu_key()
+    if not api_key:
+        raise RuntimeError("缺少環境變數 HKBU_API_KEY（浸會 GenAI）")
+
+    deployment = config.hkbu_deployment()
+    version = config.hkbu_api_version()
+    url = (
+        f"{config.hkbu_base_url().rstrip('/')}/deployments/{deployment}"
+        f"/chat/completions?api-version={version}"
+    )
+    response = requests.post(
+        url,
+        headers={
+            "Content-Type": "application/json",
+            "api-key": api_key,
+        },
+        json={
+            "messages": [{"role": "user", "content": DIAGNOSE_PROMPT + script}],
+            "temperature": 0.3,
+            "max_tokens": 1200,
+        },
+        timeout=120,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"HKBU GenAI 失敗（{response.status_code}）：{response.text[:300]}")
+    payload = response.json()
+    try:
+        return payload["choices"][0]["message"]["content"] or ""
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("HKBU GenAI 返回格式異常") from exc
+
+
 def diagnose_with_zhipu(script: str) -> str:
     api_key = config.zhipu_key()
     if not api_key:
@@ -219,7 +252,10 @@ def diagnose(script: str, lang: str | None = None) -> dict:
     if provider == "local":
         return local_fallback_diagnose(script)
 
-    if provider == "zhipu":
+    if provider == "hkbu":
+        raw = diagnose_with_hkbu(script)
+        source = "hkbu"
+    elif provider == "zhipu":
         raw = diagnose_with_zhipu(script)
         source = "zhipu"
     elif provider == "openai":
