@@ -133,6 +133,10 @@ def _parse_asr_payload(payload) -> str:
 
 
 def transcribe_wav_chunk_zhipu(wav_path: Path, api_key: str) -> str:
+    # Tiny leftover segments from ffmpeg split often have no speech.
+    if wav_path.stat().st_size < 8000:
+        return ""
+
     with wav_path.open("rb") as audio_file:
         response = requests.post(
             ZHIPU_ASR_ENDPOINT,
@@ -147,13 +151,14 @@ def transcribe_wav_chunk_zhipu(wav_path: Path, api_key: str) -> str:
         payload = response.json()
     except json.JSONDecodeError:
         payload = response.text
-    text = _parse_asr_payload(payload)
-    if not text:
-        raise RuntimeError("智譜語音轉文字未返回可用內容")
-    return text
+    # Empty text is normal for silence / trailing chunks — caller skips them.
+    return _parse_asr_payload(payload)
 
 
 def transcribe_wav_chunk_openai(wav_path: Path, api_key: str) -> str:
+    if wav_path.stat().st_size < 8000:
+        return ""
+
     with wav_path.open("rb") as audio_file:
         response = requests.post(
             OPENAI_ASR_ENDPOINT,
@@ -168,10 +173,7 @@ def transcribe_wav_chunk_openai(wav_path: Path, api_key: str) -> str:
         payload = response.json()
     except json.JSONDecodeError:
         payload = response.text
-    text = _parse_asr_payload(payload)
-    if not text:
-        raise RuntimeError("OpenAI 語音轉文字未返回可用內容")
-    return text
+    return _parse_asr_payload(payload)
 
 
 def transcribe_wav_local(wav_path: Path, lang: str | None = None) -> str:
@@ -236,8 +238,10 @@ def transcribe_media(media_path: Path, lang: str | None = None) -> str:
             chunks = split_wav(wav_path, tmp_dir / "chunks")
             parts: list[str] = []
             for chunk in chunks:
-                parts.append(chunk_fn(chunk))
-            script = "\n".join(p for p in parts if p).strip()
+                part = (chunk_fn(chunk) or "").strip()
+                if part:
+                    parts.append(part)
+            script = "\n".join(parts).strip()
 
         if len(script) < 8:
             raise RuntimeError("未能從視頻中識別出足夠的口播內容，請換一支有清晰人聲的短視頻，或改貼腳本。")
