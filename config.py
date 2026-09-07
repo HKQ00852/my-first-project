@@ -112,13 +112,12 @@ def whisper_model_name() -> str:
 
 def asr_provider(lang: str | None = None) -> str:
     """
-    Default: local Whisper (works in Hong Kong without OpenAI).
-    Optional cloud: openai / zhipu when keys exist.
+    Default: Zhipu ASR when ZHIPUAI_API_KEY is set; else local Whisper fallback.
     HKBU GenAI is chat-only and is not used for ASR.
     """
     bucket = lang_bucket(lang)
     legacy = _env("ASR_PROVIDER").lower()
-    default = "local"
+    default = "zhipu" if zhipu_key() else "local"
     per_lang = {
         "yue": _env("ASR_PROVIDER_YUE", legacy or default).lower(),
         "cmn": _env("ASR_PROVIDER_CMN", legacy or default).lower(),
