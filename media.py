@@ -9,6 +9,8 @@ from pathlib import Path
 
 import requests
 
+import config
+
 UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -24,8 +26,11 @@ ALLOWED_SUFFIXES = {
 }
 MAX_UPLOAD_BYTES = 80 * 1024 * 1024  # 80MB
 ASR_CHUNK_SECONDS = 25
-ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
-ASR_MODEL = os.getenv("ZHIPU_ASR_MODEL", "glm-asr-2512")
+ZHIPU_ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
+OPENAI_ASR_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
+
+_WHISPER_MODEL = None
+_WHISPER_MODEL_NAME: str | None = None
 
 
 def save_upload(file_storage) -> Path:
@@ -110,7 +115,6 @@ def _parse_asr_payload(payload) -> str:
         for key in ("text", "transcript", "result"):
             if key in payload and isinstance(payload[key], str):
                 return payload[key].strip()
-        # nested common shapes
         data = payload.get("data")
         if isinstance(data, dict) and isinstance(data.get("text"), str):
             return data["text"].strip()
@@ -128,45 +132,113 @@ def _parse_asr_payload(payload) -> str:
     return str(payload).strip()
 
 
-def transcribe_wav_chunk(wav_path: Path, api_key: str) -> str:
+def transcribe_wav_chunk_zhipu(wav_path: Path, api_key: str) -> str:
     with wav_path.open("rb") as audio_file:
         response = requests.post(
-            ASR_ENDPOINT,
+            ZHIPU_ASR_ENDPOINT,
             headers={"Authorization": f"Bearer {api_key}"},
             files={"file": (wav_path.name, audio_file, "audio/wav")},
-            data={"model": ASR_MODEL, "stream": "false"},
+            data={"model": config.zhipu_asr_model(), "stream": "false"},
             timeout=120,
         )
     if response.status_code >= 400:
-        raise RuntimeError(f"語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
-
+        raise RuntimeError(f"智譜語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
     try:
         payload = response.json()
     except json.JSONDecodeError:
         payload = response.text
     text = _parse_asr_payload(payload)
     if not text:
-        raise RuntimeError("語音轉文字未返回可用內容")
+        raise RuntimeError("智譜語音轉文字未返回可用內容")
     return text
 
 
-def transcribe_media(media_path: Path) -> str:
-    api_key = os.getenv("ZHIPUAI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError(
-            "直接檢測視頻需要設定環境變數 ZHIPUAI_API_KEY（用於語音轉文字）。"
-            "若暫時沒有金鑰，請改貼腳本文案。"
+def transcribe_wav_chunk_openai(wav_path: Path, api_key: str) -> str:
+    with wav_path.open("rb") as audio_file:
+        response = requests.post(
+            OPENAI_ASR_ENDPOINT,
+            headers={"Authorization": f"Bearer {api_key}"},
+            files={"file": (wav_path.name, audio_file, "audio/wav")},
+            data={"model": config.openai_asr_model()},
+            timeout=120,
         )
+    if response.status_code >= 400:
+        raise RuntimeError(f"OpenAI 語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
+    try:
+        payload = response.json()
+    except json.JSONDecodeError:
+        payload = response.text
+    text = _parse_asr_payload(payload)
+    if not text:
+        raise RuntimeError("OpenAI 語音轉文字未返回可用內容")
+    return text
+
+
+def transcribe_wav_local(wav_path: Path, lang: str | None = None) -> str:
+    """On-device Whisper — no cloud API; suitable for Hong Kong."""
+    global _WHISPER_MODEL, _WHISPER_MODEL_NAME
+    import whisper
+
+    model_name = config.whisper_model_name()
+    if _WHISPER_MODEL is None or _WHISPER_MODEL_NAME != model_name:
+        _WHISPER_MODEL = whisper.load_model(model_name)
+        _WHISPER_MODEL_NAME = model_name
+
+    bucket = config.lang_bucket(lang)
+    language = "en" if bucket == "en" else "zh"
+
+    result = _WHISPER_MODEL.transcribe(
+        str(wav_path),
+        language=language,
+        fp16=False,
+        verbose=False,
+    )
+    text = (result.get("text") or "").strip()
+    if not text:
+        raise RuntimeError("本地 Whisper 未識別到可用口播內容")
+    return text
+
+
+def _asr_chunk_fn(lang: str | None = None):
+    provider = config.asr_provider(lang)
+    if provider == "local":
+        return lambda path: transcribe_wav_local(path, lang=lang)
+    if provider == "openai":
+        key = config.openai_key()
+        if not key:
+            raise RuntimeError(
+                "ASR_PROVIDER=openai 但未設定 OPENAI_API_KEY。"
+                "可改用本地 Whisper（ASR_PROVIDER=local），或改貼腳本。"
+            )
+        return lambda path: transcribe_wav_chunk_openai(path, key)
+    key = config.zhipu_key()
+    if not key:
+        raise RuntimeError(
+            "ASR_PROVIDER=zhipu 但未設定有效 ZHIPUAI_API_KEY。"
+            "可改用本地 Whisper（ASR_PROVIDER=local），或改貼腳本。"
+        )
+    return lambda path: transcribe_wav_chunk_zhipu(path, key)
+
+
+def transcribe_media(media_path: Path, lang: str | None = None) -> str:
+    provider = config.asr_provider(lang)
 
     with tempfile.TemporaryDirectory(prefix="caixun_asr_") as tmp:
         tmp_dir = Path(tmp)
         wav_path = tmp_dir / "audio.wav"
         extract_wav(media_path, wav_path)
-        chunks = split_wav(wav_path, tmp_dir / "chunks")
-        parts: list[str] = []
-        for chunk in chunks:
-            parts.append(transcribe_wav_chunk(chunk, api_key))
-        script = "\n".join(p for p in parts if p).strip()
+
+        # Local Whisper can take the full wav; cloud APIs stay chunked.
+        if provider == "local":
+            script = transcribe_wav_local(wav_path, lang=lang).strip()
+        else:
+            chunk_fn = _asr_chunk_fn(lang)
+            chunks = split_wav(wav_path, tmp_dir / "chunks")
+            parts: list[str] = []
+            for chunk in chunks:
+                parts.append(chunk_fn(chunk))
+            script = "\n".join(p for p in parts if p).strip()
+
         if len(script) < 8:
             raise RuntimeError("未能從視頻中識別出足夠的口播內容，請換一支有清晰人聲的短視頻，或改貼腳本。")
         return script

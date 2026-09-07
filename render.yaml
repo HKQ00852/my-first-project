@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: caixun-coiseon
+    runtime: docker
+    plan: free
+    healthCheckPath: /
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: HKBU_API_KEY
+        sync: false
+      - key: ZHIPUAI_API_KEY
+        sync: false
+      - key: DIAGNOSIS_PROVIDER_YUE
+        value: hkbu
+      - key: DIAGNOSIS_PROVIDER_EN
+        value: hkbu
+      - key: DIAGNOSIS_PROVIDER_CMN
+        value: hkbu
+      - key: ASR_PROVIDER_YUE
+        value: zhipu
+      - key: ASR_PROVIDER_EN
+        value: zhipu
+      - key: ASR_PROVIDER_CMN
+        value: zhipu
+      - key: HKBU_DEPLOYMENT
+        value: gpt-4.1-mini
+      - key: HKBU_API_VERSION
+        value: 2024-05-01-preview
+      - key: ZHIPU_ASR_MODEL
+        value: glm-asr-2512
