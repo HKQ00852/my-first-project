@@ -7,3 +7,5 @@ venv/
 dist/
 node_modules/
 *.egg-info/
+diagnosis.db
+*.db
