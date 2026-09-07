@@ -10,3 +10,8 @@ document.querySelectorAll("[data-reveal]").forEach((section) => {
   );
   observer.observe(section);
 });
+
+const result = document.getElementById("result");
+if (result) {
+  result.scrollIntoView({ behavior: "smooth", block: "start" });
+}

@@ -543,16 +543,131 @@ input {
   border: 1px solid rgba(185, 28, 28, 0.25);
 }
 
-.analyze-result {
-  margin: 0 0 1rem;
-  color: var(--ink-soft);
-  font-size: 0.95rem;
+.result-panel {
+  margin-top: 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 2rem;
 }
 
-.analyze-result code {
+@media (min-width: 720px) {
+  .result-panel {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2.5rem;
+  }
+}
+
+.result-score-label {
+  margin: 0 0 0.35rem;
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.result-score-value {
+  margin: 0 0 0.85rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.score-num {
+  font-family: var(--font-latin);
+  font-size: clamp(2.8rem, 6vw, 3.6rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.score-grade {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.result-note {
+  margin: 0 0 0.85rem;
+  color: var(--muted);
+  max-width: 28rem;
+}
+
+.result-source {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.result-source code {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.9em;
+  font-size: 0.88em;
   word-break: break-all;
+  color: var(--ink-soft);
+}
+
+.result-keywords h3 {
+  margin: 0 0 1rem;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.keyword-rank {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.keyword-rank li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 1rem;
+  row-gap: 0.25rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.kw-term {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.kw-aspect {
+  grid-column: 1;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.kw-weight {
+  grid-row: 1 / span 2;
+  align-self: center;
+  position: relative;
+  min-width: 3.2rem;
+  text-align: right;
+  font-family: var(--font-latin);
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.kw-weight::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: -0.35rem;
+  width: var(--w, 50%);
+  max-width: 3.2rem;
+  height: 2px;
+  background: var(--teal);
 }
 
 .footer {

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="採訊 — 把公開網頁裡的資訊，採集成可用的結構化資料。"
+      content="採訊 — 對網絡短視頻進行關鍵詞提取與內容評價。"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,7 +15,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-    <title>採訊 CaiXun — 資訊擷取</title>
+    <title>採訊 CaiXun — 短視頻關鍵詞與評價</title>
   </head>
   <body>
     <div class="page">
@@ -23,8 +23,8 @@
         <a class="logo" href="#top">採訊</a>
         <nav class="nav">
           <a href="#how">流程</a>
-          <a href="#fields">可採欄位</a>
-          <a class="nav-cta" href="#start">開始試用</a>
+          <a href="#fields">適用場景</a>
+          <a class="nav-cta" href="#start">開始分析</a>
         </nav>
       </header>
 
@@ -45,45 +45,42 @@
                 </radialGradient>
               </defs>
 
+              <!-- Phone / short-video frame -->
               <g class="doc-plane doc-a">
-                <rect x="520" y="120" width="280" height="360" rx="8" fill="#F4F7F6" stroke="#0B3D3A" stroke-opacity="0.12" />
-                <rect x="548" y="160" width="180" height="10" rx="3" fill="#0B3D3A" fill-opacity="0.18" />
-                <rect x="548" y="190" width="220" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
-                <rect x="548" y="214" width="200" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
-                <rect x="548" y="238" width="160" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
-                <rect x="548" y="280" width="120" height="8" rx="3" fill="#14B8A6" fill-opacity="0.45" />
-                <rect x="548" y="304" width="190" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
-                <rect x="548" y="328" width="170" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
-                <rect x="548" y="370" width="140" height="8" rx="3" fill="#14B8A6" fill-opacity="0.35" />
-                <rect x="548" y="394" width="200" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
+                <rect x="560" y="90" width="220" height="420" rx="28" fill="#F4F7F6" stroke="#0B3D3A" stroke-opacity="0.16" />
+                <rect x="578" y="120" width="184" height="300" rx="12" fill="#E8F0EE" />
+                <circle cx="670" cy="270" r="28" fill="#14B8A6" fill-opacity="0.35" />
+                <polygon points="662,255 662,285 688,270" fill="#0B3D3A" fill-opacity="0.55" />
+                <rect x="590" y="440" width="90" height="8" rx="3" fill="#0B3D3A" fill-opacity="0.14" />
+                <rect x="590" y="458" width="140" height="7" rx="3" fill="#14B8A6" fill-opacity="0.4" />
+                <rect x="590" y="476" width="110" height="7" rx="3" fill="#0B3D3A" fill-opacity="0.1" />
               </g>
 
               <g class="doc-plane doc-b">
-                <rect x="460" y="180" width="240" height="300" rx="8" fill="#E8F0EE" stroke="#0B3D3A" stroke-opacity="0.1" />
-                <rect x="486" y="220" width="160" height="9" rx="3" fill="#0B3D3A" fill-opacity="0.14" />
-                <rect x="486" y="250" width="180" height="7" rx="3" fill="#0B3D3A" fill-opacity="0.08" />
-                <rect x="486" y="274" width="140" height="7" rx="3" fill="#0B3D3A" fill-opacity="0.08" />
-                <rect x="486" y="320" width="100" height="7" rx="3" fill="#14B8A6" fill-opacity="0.4" />
+                <rect x="470" y="160" width="180" height="320" rx="22" fill="#E8F0EE" stroke="#0B3D3A" stroke-opacity="0.1" />
+                <rect x="488" y="190" width="144" height="220" rx="10" fill="#F4F7F6" />
+                <rect x="500" y="430" width="70" height="7" rx="3" fill="#0B3D3A" fill-opacity="0.12" />
+                <rect x="500" y="448" width="110" height="7" rx="3" fill="#14B8A6" fill-opacity="0.35" />
               </g>
 
-              <path class="flow-line" d="M520 300 C420 300, 380 260, 280 260" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
-              <path class="flow-line delay-1" d="M520 340 C400 340, 360 360, 280 380" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
-              <path class="flow-line delay-2" d="M500 250 C400 250, 340 200, 260 180" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+              <path class="flow-line" d="M560 280 C450 280, 380 240, 280 240" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+              <path class="flow-line delay-1" d="M560 340 C430 340, 360 360, 270 390" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+              <path class="flow-line delay-2" d="M540 220 C420 220, 340 180, 250 160" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
 
               <g class="data-nodes">
-                <circle class="node n1" cx="240" cy="180" r="8" fill="#0B3D3A" />
-                <circle class="node-pulse n1" cx="240" cy="180" r="18" fill="url(#nodeGlow)" />
-                <circle class="node n2" cx="280" cy="260" r="8" fill="#14B8A6" />
-                <circle class="node-pulse n2" cx="280" cy="260" r="18" fill="url(#nodeGlow)" />
-                <circle class="node n3" cx="250" cy="380" r="8" fill="#0B3D3A" />
-                <circle class="node-pulse n3" cx="250" cy="380" r="18" fill="url(#nodeGlow)" />
-                <circle class="node n4" cx="160" cy="300" r="7" fill="#14B8A6" />
-                <line x1="240" y1="180" x2="280" y2="260" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
-                <line x1="280" y1="260" x2="250" y2="380" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
-                <line x1="280" y1="260" x2="160" y2="300" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
+                <circle class="node n1" cx="250" cy="160" r="8" fill="#0B3D3A" />
+                <circle class="node-pulse n1" cx="250" cy="160" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n2" cx="280" cy="240" r="8" fill="#14B8A6" />
+                <circle class="node-pulse n2" cx="280" cy="240" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n3" cx="250" cy="390" r="8" fill="#0B3D3A" />
+                <circle class="node-pulse n3" cx="250" cy="390" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n4" cx="160" cy="290" r="7" fill="#14B8A6" />
+                <line x1="250" y1="160" x2="280" y2="240" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
+                <line x1="280" y1="240" x2="250" y2="390" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
+                <line x1="280" y1="240" x2="160" y2="290" stroke="#0B3D3A" stroke-opacity="0.25" stroke-width="1.5" />
               </g>
 
-              <rect class="scan-line" x="520" y="120" width="280" height="3" fill="#14B8A6" opacity="0.7" />
+              <rect class="scan-line" x="578" y="120" width="184" height="3" fill="#14B8A6" opacity="0.7" />
             </svg>
           </div>
 
@@ -92,43 +89,43 @@
               <span class="brand-zh">採訊</span>
               <span class="brand-en">CaiXun</span>
             </p>
-            <h1>把公開網頁裡的資訊，採集成可用資料。</h1>
+            <h1>從短視頻裡提取關鍵詞，並給出可執行的評價。</h1>
             <p class="lede">
-              針對列表、詳情頁與公開 API 來源，定義欄位、排程擷取，輸出乾淨的結構化結果。
+              貼上公開短視頻連結，採訊會梳理主題關鍵詞、內容訊號，並輸出清晰的評價分數與改進建議。
             </p>
             <div class="cta-row">
-              <a class="btn primary" href="#start">免費建立任務</a>
-              <a class="btn ghost" href="#how">看擷取流程</a>
+              <a class="btn primary" href="#start">分析一支短視頻</a>
+              <a class="btn ghost" href="#how">看分析流程</a>
             </div>
           </div>
         </section>
 
         <section id="how" class="section how" data-reveal>
-          <p class="section-kicker">擷取流程</p>
-          <h2>三步，把散落資訊變成表格。</h2>
+          <p class="section-kicker">分析流程</p>
+          <h2>三步，把短視頻變成關鍵詞與評分。</h2>
           <p class="section-lede">
-            不需要維護爬蟲腳本。選定來源、標出欄位，其餘交給排程與清洗。
+            不用手動逐幀筆記。輸入連結後，系統整理主題詞、結構訊號，並給出可對照的評價。
           </p>
           <ol class="flow-steps">
             <li>
               <span class="step-num">01</span>
               <div>
-                <h3>指定來源</h3>
-                <p>貼上公開網頁、列表 URL，或匯入已允許的資料來源位址。</p>
+                <h3>貼上短視頻連結</h3>
+                <p>支援你有權存取的公開短視頻頁面或分享連結。</p>
               </div>
             </li>
             <li>
               <span class="step-num">02</span>
               <div>
-                <h3>標註欄位</h3>
-                <p>用視覺選取器點出標題、價格、時間、連結等要採集的欄位。</p>
+                <h3>提取關鍵詞</h3>
+                <p>從標題、口播重點、字幕與話題訊號中整理高權重關鍵詞。</p>
               </div>
             </li>
             <li>
               <span class="step-num">03</span>
               <div>
-                <h3>排程輸出</h3>
-                <p>設定頻率，結果以 CSV、JSON 或 Webhook 送到你的工作流。</p>
+                <h3>輸出評價</h3>
+                <p>依吸引力、清晰度、轉化潛力等面向給出分數與簡要建議。</p>
               </div>
             </li>
           </ol>
@@ -136,34 +133,34 @@
 
         <section id="fields" class="section fields" data-reveal>
           <p class="section-kicker">適用場景</p>
-          <h2>為「需要反覆採樣」的公開資訊而生。</h2>
+          <h2>為「需要快速讀懂短視頻」的人而設計。</h2>
           <p class="section-lede">
-            適合合規範圍內的公開資料追蹤——競品動態、行業名單、內容聚合與研究素材。
+            適合創作者復盤、品牌監測、選題研究與內容審校——先抓關鍵詞，再看評價。
           </p>
           <ul class="field-list">
             <li>
-              <strong>商品與價格</strong>
-              <span>追蹤公開商品頁的名稱、規格、售價變動。</span>
+              <strong>創作者復盤</strong>
+              <span>看清自己影片的核心關鍵詞與結構評分，調整下支內容。</span>
             </li>
             <li>
-              <strong>內容與新聞</strong>
-              <span>彙整標題、摘要、發布時間與原文連結。</span>
+              <strong>品牌監測</strong>
+              <span>追蹤競品短視頻的話題詞與表達強度，建立對照基準。</span>
             </li>
             <li>
-              <strong>名單與目錄</strong>
-              <span>採集機構、門市、聯絡方式等公開目錄欄位。</span>
+              <strong>選題研究</strong>
+              <span>從熱門短視頻中抽出高頻主題詞，輔助內容規劃。</span>
             </li>
             <li>
-              <strong>研究素材</strong>
-              <span>定期抽樣公開統計頁與公告，建立可分析資料集。</span>
+              <strong>內容審校</strong>
+              <span>快速檢查訊息密度、開頭鉤子與行動呼籲是否到位。</span>
             </li>
           </ul>
         </section>
 
         <section id="start" class="section final-cta">
-          <h2>開始你的第一個擷取任務</h2>
+          <h2>開始分析一支短視頻</h2>
           <p>
-            輸入一個公開網頁網址，採訊會協助你標出欄位並產出第一份結構化結果。
+            輸入公開短視頻連結，採訊會生成示範版關鍵詞列表與內容評價。
           </p>
 
           {% with messages = get_flashed_messages(with_categories=true) %}
@@ -176,32 +173,52 @@
             {% endif %}
           {% endwith %}
 
-          {% if analyzed_url %}
-            <p class="analyze-result">
-              已記錄來源：<code>{{ analyzed_url }}</code>
-            </p>
-          {% endif %}
-
           <form class="start-form" action="{{ url_for('analyze') }}" method="post">
-            <label class="sr-only" for="source-url">來源網址</label>
+            <label class="sr-only" for="source-url">短視頻連結</label>
             <input
               id="source-url"
               name="url"
               type="url"
-              placeholder="https://example.com/list"
+              placeholder="https://example.com/video/123"
               autocomplete="url"
-              value="{{ analyzed_url or '' }}"
+              value="{{ result.url if result else '' }}"
               required
             />
-            <button type="submit" class="btn primary">分析此頁</button>
+            <button type="submit" class="btn primary">提取並評價</button>
           </form>
-          <p class="fineprint">示範介面 · 僅處理你有權存取的公開資訊 · Flask</p>
+          <p class="fineprint">示範介面 · 僅處理你有權存取的公開內容 · 結果為本地演示分析</p>
+
+          {% if result %}
+            <div class="result-panel" id="result">
+              <div class="result-score">
+                <p class="result-score-label">綜合評價</p>
+                <p class="result-score-value">
+                  <span class="score-num">{{ result.score }}</span>
+                  <span class="score-grade">{{ result.grade }}</span>
+                </p>
+                <p class="result-note">{{ result.note }}</p>
+                <p class="result-source">來源：<code>{{ result.url }}</code></p>
+              </div>
+              <div class="result-keywords">
+                <h3>關鍵詞提取</h3>
+                <ol class="keyword-rank">
+                  {% for item in result.keywords %}
+                    <li>
+                      <span class="kw-term">{{ item.term }}</span>
+                      <span class="kw-aspect">{{ item.aspect }}</span>
+                      <span class="kw-weight" style="--w: {{ item.weight }}%">{{ item.weight }}</span>
+                    </li>
+                  {% endfor %}
+                </ol>
+              </div>
+            </div>
+          {% endif %}
         </section>
       </main>
 
       <footer class="footer">
         <span class="logo">採訊</span>
-        <span>資訊擷取產品示範頁 · Python / Flask</span>
+        <span>短視頻關鍵詞提取與評價 · Python / Flask</span>
       </footer>
     </div>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
