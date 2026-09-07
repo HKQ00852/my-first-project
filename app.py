@@ -5,7 +5,7 @@ import os
 from flask import Flask, flash, make_response, render_template, request
 
 from diagnosis import diagnose_and_save, init_db
-from i18n import COOKIE_NAME, MESSAGES, get_locale, score_label, t
+from i18n import COOKIE_NAME, MESSAGES, get_locale, html_lang, score_label, t
 from media import save_upload, transcribe_media
 
 app = Flask(__name__)
@@ -20,6 +20,7 @@ def inject_i18n():
     lang = get_locale()
     return {
         "lang": lang,
+        "html_lang": html_lang(lang),
         "t": lambda key, **kwargs: t(key, lang, **kwargs),
         "score_label": lambda raw: score_label(raw, lang),
         "i18n_messages": MESSAGES,

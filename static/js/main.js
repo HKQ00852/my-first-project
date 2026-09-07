@@ -46,7 +46,8 @@ function scoreText(raw, lang) {
 
 function applyLanguage(lang) {
   const code = normalizeLang(lang);
-  document.documentElement.lang = code;
+  const htmlLang = code === "zh-Hant" ? "zh-HK" : code === "zh-Hans" ? "zh-CN" : "en";
+  document.documentElement.lang = htmlLang;
   writeCookie(COOKIE_NAME, code);
   window.__CAIXUN_LANG__ = code;
 
