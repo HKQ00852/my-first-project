@@ -9,6 +9,8 @@ from pathlib import Path
 
 import requests
 
+import config
+
 UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
@@ -24,8 +26,8 @@ ALLOWED_SUFFIXES = {
 }
 MAX_UPLOAD_BYTES = 80 * 1024 * 1024  # 80MB
 ASR_CHUNK_SECONDS = 25
-ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
-ASR_MODEL = os.getenv("ZHIPU_ASR_MODEL", "glm-asr-2512")
+ZHIPU_ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
+OPENAI_ASR_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
 
 
 def save_upload(file_storage) -> Path:
@@ -110,7 +112,6 @@ def _parse_asr_payload(payload) -> str:
         for key in ("text", "transcript", "result"):
             if key in payload and isinstance(payload[key], str):
                 return payload[key].strip()
-        # nested common shapes
         data = payload.get("data")
         if isinstance(data, dict) and isinstance(data.get("text"), str):
             return data["text"].strip()
@@ -128,35 +129,69 @@ def _parse_asr_payload(payload) -> str:
     return str(payload).strip()
 
 
-def transcribe_wav_chunk(wav_path: Path, api_key: str) -> str:
+def transcribe_wav_chunk_zhipu(wav_path: Path, api_key: str) -> str:
     with wav_path.open("rb") as audio_file:
         response = requests.post(
-            ASR_ENDPOINT,
+            ZHIPU_ASR_ENDPOINT,
             headers={"Authorization": f"Bearer {api_key}"},
             files={"file": (wav_path.name, audio_file, "audio/wav")},
-            data={"model": ASR_MODEL, "stream": "false"},
+            data={"model": config.zhipu_asr_model(), "stream": "false"},
             timeout=120,
         )
     if response.status_code >= 400:
-        raise RuntimeError(f"語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
-
+        raise RuntimeError(f"智譜語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
     try:
         payload = response.json()
     except json.JSONDecodeError:
         payload = response.text
     text = _parse_asr_payload(payload)
     if not text:
-        raise RuntimeError("語音轉文字未返回可用內容")
+        raise RuntimeError("智譜語音轉文字未返回可用內容")
     return text
 
 
-def transcribe_media(media_path: Path) -> str:
-    api_key = os.getenv("ZHIPUAI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError(
-            "直接檢測視頻需要設定環境變數 ZHIPUAI_API_KEY（用於語音轉文字）。"
-            "若暫時沒有金鑰，請改貼腳本文案。"
+def transcribe_wav_chunk_openai(wav_path: Path, api_key: str) -> str:
+    with wav_path.open("rb") as audio_file:
+        response = requests.post(
+            OPENAI_ASR_ENDPOINT,
+            headers={"Authorization": f"Bearer {api_key}"},
+            files={"file": (wav_path.name, audio_file, "audio/wav")},
+            data={"model": config.openai_asr_model()},
+            timeout=120,
         )
+    if response.status_code >= 400:
+        raise RuntimeError(f"OpenAI 語音轉文字失敗（{response.status_code}）：{response.text[:300]}")
+    try:
+        payload = response.json()
+    except json.JSONDecodeError:
+        payload = response.text
+    text = _parse_asr_payload(payload)
+    if not text:
+        raise RuntimeError("OpenAI 語音轉文字未返回可用內容")
+    return text
+
+
+def _asr_chunk_fn(lang: str | None = None):
+    provider = config.asr_provider(lang)
+    if provider == "openai":
+        key = config.openai_key()
+        if not key:
+            raise RuntimeError(
+                "粵語／英文轉寫需要 OPENAI_API_KEY（Whisper）。"
+                "請在 .env 填入金鑰，切換到简体後可用智譜，或改貼腳本文案。"
+            )
+        return lambda path: transcribe_wav_chunk_openai(path, key)
+    key = config.zhipu_key()
+    if not key:
+        raise RuntimeError(
+            "普通话转写需要 ZHIPUAI_API_KEY。"
+            "请在 .env 填入密钥，切换到粵語後可用 OpenAI，或改贴脚本文案。"
+        )
+    return lambda path: transcribe_wav_chunk_zhipu(path, key)
+
+
+def transcribe_media(media_path: Path, lang: str | None = None) -> str:
+    chunk_fn = _asr_chunk_fn(lang)
 
     with tempfile.TemporaryDirectory(prefix="caixun_asr_") as tmp:
         tmp_dir = Path(tmp)
@@ -165,7 +200,7 @@ def transcribe_media(media_path: Path) -> str:
         chunks = split_wav(wav_path, tmp_dir / "chunks")
         parts: list[str] = []
         for chunk in chunks:
-            parts.append(transcribe_wav_chunk(chunk, api_key))
+            parts.append(chunk_fn(chunk))
         script = "\n".join(p for p in parts if p).strip()
         if len(script) < 8:
             raise RuntimeError("未能從視頻中識別出足夠的口播內容，請換一支有清晰人聲的短視頻，或改貼腳本。")

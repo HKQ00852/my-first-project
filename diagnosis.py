@@ -1,10 +1,13 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import sqlite3
 from pathlib import Path
+
+import requests
+
+import config
 
 DB_PATH = Path(__file__).resolve().parent / "diagnosis.db"
 
@@ -118,7 +121,7 @@ def extract_json(raw_output: str | None) -> dict | None:
 
 
 def diagnose_with_zhipu(script: str) -> str:
-    api_key = os.getenv("ZHIPUAI_API_KEY", "").strip()
+    api_key = config.zhipu_key()
     if not api_key:
         raise RuntimeError("缺少環境變數 ZHIPUAI_API_KEY")
 
@@ -126,10 +129,42 @@ def diagnose_with_zhipu(script: str) -> str:
 
     client = ZhipuAI(api_key=api_key)
     response = client.chat.completions.create(
-        model="glm-4-flash",
+        model=config.zhipu_chat_model(),
         messages=[{"role": "user", "content": DIAGNOSE_PROMPT + script}],
     )
     return response.choices[0].message.content or ""
+
+
+def diagnose_with_openai_compatible(
+    script: str,
+    *,
+    api_key: str,
+    base_url: str,
+    model: str,
+) -> str:
+    if not api_key:
+        raise RuntimeError("缺少診斷 API Key")
+
+    response = requests.post(
+        f"{base_url.rstrip('/')}/chat/completions",
+        headers={
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+        },
+        json={
+            "model": model,
+            "temperature": 0.3,
+            "messages": [{"role": "user", "content": DIAGNOSE_PROMPT + script}],
+        },
+        timeout=120,
+    )
+    if response.status_code >= 400:
+        raise RuntimeError(f"診斷 API 失敗（{response.status_code}）：{response.text[:300]}")
+    payload = response.json()
+    try:
+        return payload["choices"][0]["message"]["content"] or ""
+    except (KeyError, IndexError, TypeError) as exc:
+        raise RuntimeError("診斷 API 返回格式異常") from exc
 
 
 def local_fallback_diagnose(script: str) -> dict:
@@ -178,16 +213,38 @@ def local_fallback_diagnose(script: str) -> dict:
     }
 
 
-def diagnose(script: str) -> dict:
-    api_key = os.getenv("ZHIPUAI_API_KEY", "").strip()
-    if api_key:
+def diagnose(script: str, lang: str | None = None) -> dict:
+    provider = config.diagnosis_provider(lang)
+
+    if provider == "local":
+        return local_fallback_diagnose(script)
+
+    if provider == "zhipu":
         raw = diagnose_with_zhipu(script)
-        data = extract_json(raw)
-        if data is None:
-            raise ValueError("AI 診斷結果無法解析為 JSON")
-        data["source"] = "zhipu"
-        return data
-    data = local_fallback_diagnose(script)
+        source = "zhipu"
+    elif provider == "openai":
+        raw = diagnose_with_openai_compatible(
+            script,
+            api_key=config.openai_key(),
+            base_url="https://api.openai.com/v1",
+            model=config.openai_chat_model(),
+        )
+        source = "openai"
+    elif provider == "deepseek":
+        raw = diagnose_with_openai_compatible(
+            script,
+            api_key=config.deepseek_key(),
+            base_url="https://api.deepseek.com/v1",
+            model=config.deepseek_chat_model(),
+        )
+        source = "deepseek"
+    else:
+        return local_fallback_diagnose(script)
+
+    data = extract_json(raw)
+    if data is None:
+        raise ValueError("AI 診斷結果無法解析為 JSON")
+    data["source"] = source
     return data
 
 
@@ -251,8 +308,9 @@ def diagnose_and_save(
     district: str | None,
     script: str,
     filename: str | None = None,
+    lang: str | None = None,
 ) -> dict:
-    data = diagnose(script)
+    data = diagnose(script, lang=lang)
     video_id = insert_video(shop_name, industry, district, script, filename=filename)
     diagnosis_id = save_diagnosis(video_id, data)
     return {

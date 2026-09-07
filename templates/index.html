@@ -264,6 +264,10 @@
                   <span data-i18n="result.source">{{ t('result.source') }}</span>
                   {% if result.source == 'zhipu' %}
                     <span data-i18n="result.source_zhipu">{{ t('result.source_zhipu') }}</span>
+                  {% elif result.source == 'openai' %}
+                    <span data-i18n="result.source_openai">{{ t('result.source_openai') }}</span>
+                  {% elif result.source == 'deepseek' %}
+                    <span data-i18n="result.source_deepseek">{{ t('result.source_deepseek') }}</span>
                   {% else %}
                     <span data-i18n="result.source_local">{{ t('result.source_local') }}</span>
                   {% endif %}

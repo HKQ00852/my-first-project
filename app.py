@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 
+import config  # noqa: F401 — load .env before other modules read keys
 from flask import Flask, flash, make_response, render_template, request
 
 from diagnosis import diagnose_and_save, init_db
@@ -75,7 +76,7 @@ def analyze():
         if upload and upload.filename:
             path = save_upload(upload)
             uploaded_name = upload.filename
-            script = transcribe_media(path)
+            script = transcribe_media(path, lang=lang)
             form_data["script"] = script
         elif not script:
             flash(t("flash.need_input", lang), "error")
@@ -90,6 +91,7 @@ def analyze():
             district,
             script,
             filename=uploaded_name or None,
+            lang=lang,
         )
     except Exception as exc:  # noqa: BLE001 - surface processing errors to UI
         flash(f"{t('flash.fail_prefix', lang)}{exc}", "error")
