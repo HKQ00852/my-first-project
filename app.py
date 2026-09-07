@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import os
 
-from flask import Flask, flash, render_template, request
+from flask import Flask, flash, make_response, render_template, request
 
 from diagnosis import diagnose_and_save, init_db
+from i18n import COOKIE_NAME, MESSAGES, get_locale, score_label, t
 from media import save_upload, transcribe_media
 
 app = Flask(__name__)
@@ -14,13 +15,43 @@ app.config["MAX_CONTENT_LENGTH"] = 80 * 1024 * 1024
 init_db()
 
 
+@app.context_processor
+def inject_i18n():
+    lang = get_locale()
+    return {
+        "lang": lang,
+        "t": lambda key, **kwargs: t(key, lang, **kwargs),
+        "score_label": lambda raw: score_label(raw, lang),
+        "i18n_messages": MESSAGES,
+    }
+
+
+def render_page(*, result=None, form_data=None, status=200):
+    lang = get_locale()
+    html = render_template(
+        "index.html",
+        result=result,
+        form_data=form_data,
+        lang=lang,
+    )
+    response = make_response(html, status)
+    response.set_cookie(
+        COOKIE_NAME,
+        lang,
+        max_age=60 * 60 * 24 * 365,
+        samesite="Lax",
+    )
+    return response
+
+
 @app.get("/")
 def home():
-    return render_template("index.html", result=None, form_data=None)
+    return render_page(result=None, form_data=None)
 
 
 @app.post("/analyze")
 def analyze():
+    lang = get_locale()
     shop_name = (request.form.get("shop_name") or "").strip()
     industry = (request.form.get("industry") or "").strip()
     district = (request.form.get("district") or "").strip()
@@ -36,8 +67,8 @@ def analyze():
     }
 
     if not shop_name or not industry:
-        flash("請填寫店名與行業。", "error")
-        return render_template("index.html", result=None, form_data=form_data), 400
+        flash(t("flash.need_shop", lang), "error")
+        return render_page(result=None, form_data=form_data, status=400)
 
     try:
         if upload and upload.filename:
@@ -46,11 +77,11 @@ def analyze():
             script = transcribe_media(path)
             form_data["script"] = script
         elif not script:
-            flash("請上傳短視頻，或貼上腳本文案（二選一即可）。", "error")
-            return render_template("index.html", result=None, form_data=form_data), 400
+            flash(t("flash.need_input", lang), "error")
+            return render_page(result=None, form_data=form_data, status=400)
         elif len(script) < 10:
-            flash("腳本內容過短，請貼上更完整的口播／分鏡文案。", "error")
-            return render_template("index.html", result=None, form_data=form_data), 400
+            flash(t("flash.script_short", lang), "error")
+            return render_page(result=None, form_data=form_data, status=400)
 
         result = diagnose_and_save(
             shop_name,
@@ -60,17 +91,17 @@ def analyze():
             filename=uploaded_name or None,
         )
     except Exception as exc:  # noqa: BLE001 - surface processing errors to UI
-        flash(f"診斷失敗：{exc}", "error")
-        return render_template("index.html", result=None, form_data=form_data), 502
+        flash(f"{t('flash.fail_prefix', lang)}{exc}", "error")
+        return render_page(result=None, form_data=form_data, status=502)
 
     if uploaded_name:
-        flash(f"已從「{uploaded_name}」轉寫口播並完成診斷。", "ok")
+        flash(t("flash.ok_video", lang, name=uploaded_name), "ok")
     elif result.get("source") == "local":
-        flash("已完成本地規則診斷（未偵測到 ZHIPUAI_API_KEY，未呼叫智譜 API）。", "ok")
+        flash(t("flash.ok_local", lang), "ok")
     else:
-        flash("已完成 AI 診斷，結果已寫入資料庫。", "ok")
+        flash(t("flash.ok_ai", lang), "ok")
 
-    return render_template("index.html", result=result, form_data=form_data)
+    return render_page(result=result, form_data=form_data)
 
 
 if __name__ == "__main__":

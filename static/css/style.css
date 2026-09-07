@@ -10,9 +10,9 @@
   --muted: #5c5c57;
   --line: rgba(17, 17, 17, 0.12);
 
-  --font-display: 'Noto Serif TC', 'Songti TC', serif;
+  --font-display: 'Noto Serif TC', 'Noto Serif SC', 'Songti TC', serif;
   --font-latin: 'Syne', sans-serif;
-  --font-body: 'Noto Sans TC', 'PingFang TC', sans-serif;
+  --font-body: 'Noto Sans TC', 'Noto Sans SC', 'PingFang TC', sans-serif;
 
   --radius: 4px;
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -101,6 +101,12 @@ input {
   flex-shrink: 0;
 }
 
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
 .nav {
   display: flex;
   align-items: center;
@@ -118,6 +124,49 @@ input {
   font-weight: 600;
   padding-bottom: 2px;
   border-bottom: 1.5px solid var(--teal);
+}
+
+.lang-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.18rem;
+  border: 1px solid var(--line);
+  background: rgba(252, 252, 251, 0.9);
+}
+
+.lang-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-latin);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  min-width: 2rem;
+  padding: 0.42rem 0.5rem;
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.lang-btn:hover {
+  color: var(--ink);
+}
+
+.lang-btn.is-active {
+  background: var(--ink);
+  color: var(--white);
+}
+
+body[data-lang="zh-Hans"] {
+  --font-display: 'Noto Serif SC', 'Noto Serif TC', 'Songti SC', serif;
+  --font-body: 'Noto Sans SC', 'Noto Sans TC', 'PingFang SC', sans-serif;
+}
+
+body[data-lang="en"] {
+  --font-body: 'Noto Sans TC', 'Noto Sans SC', system-ui, sans-serif;
 }
 
 /* —— Hero —— */
@@ -855,6 +904,15 @@ input {
 @media (max-width: 640px) {
   .nav a:not(.nav-cta) {
     display: none;
+  }
+
+  .topbar-right {
+    gap: 0.65rem;
+  }
+
+  .lang-btn {
+    min-width: 1.75rem;
+    padding: 0.38rem 0.4rem;
   }
 
   .lab-frame {

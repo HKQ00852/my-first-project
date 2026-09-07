@@ -1,22 +1,19 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="{{ lang }}">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
     <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo-256.png') }}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="採訊 — 短視頻帶貨腳本診斷：開頭鉤子、同質化、CTA、完播驅動力。"
-    />
+    <meta name="description" data-i18n="meta.description" content="{{ t('meta.description') }}" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@600;700&family=Syne:wght@600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&family=Noto+Serif+TC:wght@600;700&family=Syne:wght@600;700;800&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
-    <title>採訊 CoiSeon — 短視頻腳本診斷</title>
+    <title data-i18n="meta.title">{{ t('meta.title') }}</title>
   </head>
   <body>
     <div class="page">
@@ -29,13 +26,20 @@
             height="36"
             alt=""
           />
-          <span>採訊</span>
+          <span data-i18n="brand.name">{{ t('brand.name') }}</span>
         </a>
-        <nav class="nav">
-          <a href="#how">流程</a>
-          <a href="#fields">適用場景</a>
-          <a class="nav-cta" href="#start">開始分析</a>
-        </nav>
+        <div class="topbar-right">
+          <nav class="nav" aria-label="Primary">
+            <a href="#how" data-i18n="nav.how">{{ t('nav.how') }}</a>
+            <a href="#fields" data-i18n="nav.fields">{{ t('nav.fields') }}</a>
+            <a class="nav-cta" href="#start" data-i18n="nav.start">{{ t('nav.start') }}</a>
+          </nav>
+          <div class="lang-switch" role="group" aria-label="{{ t('lang.label') }}">
+            <button type="button" class="lang-btn{% if lang == 'zh-Hant' %} is-active{% endif %}" data-lang="zh-Hant" data-i18n="lang.zh-Hant">繁</button>
+            <button type="button" class="lang-btn{% if lang == 'zh-Hans' %} is-active{% endif %}" data-lang="zh-Hans" data-i18n="lang.zh-Hans">简</button>
+            <button type="button" class="lang-btn{% if lang == 'en' %} is-active{% endif %}" data-lang="en" data-i18n="lang.en">EN</button>
+          </div>
+        </div>
       </header>
 
       <main id="top">
@@ -55,7 +59,6 @@
                 </radialGradient>
               </defs>
 
-              <!-- Phone / short-video frame -->
               <g class="doc-plane doc-a">
                 <rect x="560" y="90" width="220" height="420" rx="28" fill="#F7F7F5" stroke="#111111" stroke-opacity="0.16" />
                 <rect x="578" y="120" width="184" height="300" rx="12" fill="#EBEAE6" />
@@ -101,86 +104,79 @@
                 src="{{ url_for('static', filename='img/logo-256.png') }}"
                 width="112"
                 height="112"
-                alt="採訊標誌"
+                data-i18n-alt="brand.logo_alt"
+                alt="{{ t('brand.logo_alt') }}"
               />
               <span class="brand-text">
-                <span class="brand-zh">採訊</span>
+                <span class="brand-zh" data-i18n="brand.name">{{ t('brand.name') }}</span>
                 <span class="brand-en">CoiSeon</span>
               </span>
             </p>
-            <h1>上傳短視頻或貼腳本，直接完成診斷。</h1>
-            <p class="lede">
-              支援上傳帶貨短視頻自動轉寫口播，再從開頭鉤子、同質化、行動號召與完播驅動力四個面向給出建議。
-            </p>
+            <h1 data-i18n="hero.h1">{{ t('hero.h1') }}</h1>
+            <p class="lede" data-i18n="hero.lede">{{ t('hero.lede') }}</p>
             <div class="cta-row">
-              <a class="btn primary" href="#start">開始檢測視頻</a>
-              <a class="btn ghost" href="#how">看診斷流程</a>
+              <a class="btn primary" href="#start" data-i18n="hero.cta_primary">{{ t('hero.cta_primary') }}</a>
+              <a class="btn ghost" href="#how" data-i18n="hero.cta_secondary">{{ t('hero.cta_secondary') }}</a>
             </div>
           </div>
         </section>
 
         <section id="how" class="section how" data-reveal>
-          <p class="section-kicker">診斷流程</p>
-          <h2>三步，把腳本變成可執行診斷。</h2>
-          <p class="section-lede">
-            不用逐句人工批註。填入商家資訊與腳本後，系統會輸出四維評分與優先改進點。
-          </p>
+          <p class="section-kicker" data-i18n="how.kicker">{{ t('how.kicker') }}</p>
+          <h2 data-i18n="how.h2">{{ t('how.h2') }}</h2>
+          <p class="section-lede" data-i18n="how.lede">{{ t('how.lede') }}</p>
           <ol class="flow-steps">
             <li>
               <span class="step-num">01</span>
               <div>
-                <h3>上傳視頻或貼腳本</h3>
-                <p>上傳你有權使用的短視頻檔案，或直接貼入口播／分鏡文案。</p>
+                <h3 data-i18n="how.step1.title">{{ t('how.step1.title') }}</h3>
+                <p data-i18n="how.step1.body">{{ t('how.step1.body') }}</p>
               </div>
             </li>
             <li>
               <span class="step-num">02</span>
               <div>
-                <h3>轉寫與四維診斷</h3>
-                <p>視頻會先轉成口播文字，再評估鉤子、同質化、CTA、完播驅動力。</p>
+                <h3 data-i18n="how.step2.title">{{ t('how.step2.title') }}</h3>
+                <p data-i18n="how.step2.body">{{ t('how.step2.body') }}</p>
               </div>
             </li>
             <li>
               <span class="step-num">03</span>
               <div>
-                <h3>輸出優先改進</h3>
-                <p>每個維度給出高／中／低評分與建議，並標出最該先改的一點。</p>
+                <h3 data-i18n="how.step3.title">{{ t('how.step3.title') }}</h3>
+                <p data-i18n="how.step3.body">{{ t('how.step3.body') }}</p>
               </div>
             </li>
           </ol>
         </section>
 
         <section id="fields" class="section fields" data-reveal>
-          <p class="section-kicker">適用場景</p>
-          <h2>為小商家帶貨短視頻而設計。</h2>
-          <p class="section-lede">
-            適合門店老闆、代運營與內容審校——先看腳本問題，再決定怎麼改下一支。
-          </p>
+          <p class="section-kicker" data-i18n="fields.kicker">{{ t('fields.kicker') }}</p>
+          <h2 data-i18n="fields.h2">{{ t('fields.h2') }}</h2>
+          <p class="section-lede" data-i18n="fields.lede">{{ t('fields.lede') }}</p>
           <ul class="field-list">
             <li>
-              <strong>門店自查</strong>
-              <span>快速檢查自己的口播是否太平、有沒有 CTA、開頭夠不夠抓人。</span>
+              <strong data-i18n="fields.item1.title">{{ t('fields.item1.title') }}</strong>
+              <span data-i18n="fields.item1.body">{{ t('fields.item1.body') }}</span>
             </li>
             <li>
-              <strong>代運營批改</strong>
-              <span>批量對照不同商家腳本，統一診斷維度與改進優先級。</span>
+              <strong data-i18n="fields.item2.title">{{ t('fields.item2.title') }}</strong>
+              <span data-i18n="fields.item2.body">{{ t('fields.item2.body') }}</span>
             </li>
             <li>
-              <strong>行業對標</strong>
-              <span>依行業保存診斷結果，後續可做同業基準比較。</span>
+              <strong data-i18n="fields.item3.title">{{ t('fields.item3.title') }}</strong>
+              <span data-i18n="fields.item3.body">{{ t('fields.item3.body') }}</span>
             </li>
             <li>
-              <strong>內容審校</strong>
-              <span>上線前檢查同質化與完播節奏，降低「只有報價」的片子比例。</span>
+              <strong data-i18n="fields.item4.title">{{ t('fields.item4.title') }}</strong>
+              <span data-i18n="fields.item4.body">{{ t('fields.item4.body') }}</span>
             </li>
           </ul>
         </section>
 
         <section id="start" class="section final-cta">
-          <h2>開始檢測短視頻</h2>
-          <p>
-            上傳短視頻（自動轉寫口播），或貼上腳本；兩者擇一即可。
-          </p>
+          <h2 data-i18n="start.h2">{{ t('start.h2') }}</h2>
+          <p data-i18n="start.lede">{{ t('start.lede') }}</p>
 
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -198,38 +194,42 @@
             method="post"
             enctype="multipart/form-data"
           >
+            <input type="hidden" name="lang" id="form-lang" value="{{ lang }}" />
             <div class="form-grid">
               <label>
-                <span>店名</span>
+                <span data-i18n="form.shop">{{ t('form.shop') }}</span>
                 <input
                   name="shop_name"
                   type="text"
-                  placeholder="例如：李老闆麵館"
+                  data-i18n-placeholder="form.shop_ph"
+                  placeholder="{{ t('form.shop_ph') }}"
                   value="{{ form_data.shop_name if form_data else '' }}"
                   required
                 />
               </label>
               <label>
-                <span>行業</span>
+                <span data-i18n="form.industry">{{ t('form.industry') }}</span>
                 <input
                   name="industry"
                   type="text"
-                  placeholder="例如：餐飲"
+                  data-i18n-placeholder="form.industry_ph"
+                  placeholder="{{ t('form.industry_ph') }}"
                   value="{{ form_data.industry if form_data else '' }}"
                   required
                 />
               </label>
               <label class="span-2">
-                <span>區域（選填）</span>
+                <span data-i18n="form.district">{{ t('form.district') }}</span>
                 <input
                   name="district"
                   type="text"
-                  placeholder="例如：旺角"
+                  data-i18n-placeholder="form.district_ph"
+                  placeholder="{{ t('form.district_ph') }}"
                   value="{{ form_data.district if form_data else '' }}"
                 />
               </label>
               <label class="span-2">
-                <span>上傳短視頻／音訊（選填）</span>
+                <span data-i18n="form.video">{{ t('form.video') }}</span>
                 <input
                   name="video"
                   type="file"
@@ -237,71 +237,73 @@
                 />
               </label>
               <label class="span-2">
-                <span>或直接貼腳本（選填）</span>
+                <span data-i18n="form.script">{{ t('form.script') }}</span>
                 <textarea
                   name="script"
                   rows="8"
-                  placeholder="若不上傳視頻，可在此貼口播文案或分鏡腳本……"
+                  data-i18n-placeholder="form.script_ph"
+                  placeholder="{{ t('form.script_ph') }}"
                 >{{ form_data.script if form_data else '' }}</textarea>
               </label>
             </div>
-            <button type="submit" class="btn primary">開始診斷</button>
+            <button type="submit" class="btn primary" data-i18n="form.submit">{{ t('form.submit') }}</button>
           </form>
-          <p class="fineprint">
-            直接檢測視頻需設定 <code>ZHIPUAI_API_KEY</code>（語音轉文字）。僅貼腳本時，無金鑰也可用本地規則診斷。
-            請只上傳你有權使用的內容。
-          </p>
+          <p class="fineprint" data-i18n="form.fineprint">{{ t('form.fineprint') }}</p>
 
           {% if result %}
             <div class="result-panel" id="result">
               <div class="result-score">
-                <p class="result-score-label">優先改進</p>
+                <p class="result-score-label" data-i18n="result.priority">{{ t('result.priority') }}</p>
                 <p class="priority-text">{{ result.priority }}</p>
                 <p class="result-note">
                   {{ result.shop_name }} · {{ result.industry }}
                   {% if result.district %} · {{ result.district }}{% endif %}
-                  {% if result.filename %} · 檔案 {{ result.filename }}{% endif %}
+                  {% if result.filename %} · <span data-i18n="result.file">{{ t('result.file') }}</span> {{ result.filename }}{% endif %}
                 </p>
                 <p class="result-source">
-                  診斷來源：
-                  {% if result.source == 'zhipu' %}智譜 AI{% else %}本地規則{% endif %}
-                  · 影片 ID {{ result.video_id }}
+                  <span data-i18n="result.source">{{ t('result.source') }}</span>
+                  {% if result.source == 'zhipu' %}
+                    <span data-i18n="result.source_zhipu">{{ t('result.source_zhipu') }}</span>
+                  {% else %}
+                    <span data-i18n="result.source_local">{{ t('result.source_local') }}</span>
+                  {% endif %}
+                  · <span data-i18n="result.video_id">{{ t('result.video_id') }}</span> {{ result.video_id }}
                 </p>
               </div>
               <div class="result-keywords">
-                <h3>四維診斷</h3>
+                <h3 data-i18n="result.dims">{{ t('result.dims') }}</h3>
                 <ol class="diag-list">
                   <li>
                     <div class="diag-head">
-                      <strong>開頭鉤子</strong>
-                      <span class="diag-score {% if result.hook.score == '高' %}is-high{% elif result.hook.score == '中' %}is-mid{% else %}is-low{% endif %}">{{ result.hook.score }}</span>
+                      <strong data-i18n="result.hook">{{ t('result.hook') }}</strong>
+                      <span class="diag-score {% if result.hook.score == '高' %}is-high{% elif result.hook.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.hook.score }}">{{ score_label(result.hook.score) }}</span>
                     </div>
                     <p>{{ result.hook.advice }}</p>
                   </li>
                   <li>
                     <div class="diag-head">
-                      <strong>內容同質化</strong>
-                      <span class="diag-score {% if result.homogeneity.score == '高' %}is-high{% elif result.homogeneity.score == '中' %}is-mid{% else %}is-low{% endif %}">{{ result.homogeneity.score }}</span>
+                      <strong data-i18n="result.homogeneity">{{ t('result.homogeneity') }}</strong>
+                      <span class="diag-score {% if result.homogeneity.score == '高' %}is-high{% elif result.homogeneity.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.homogeneity.score }}">{{ score_label(result.homogeneity.score) }}</span>
                     </div>
                     <p>{{ result.homogeneity.advice }}</p>
                   </li>
                   <li>
                     <div class="diag-head">
-                      <strong>行動號召 CTA</strong>
-                      <span class="diag-score {% if result.cta.has_cta %}is-high{% else %}is-low{% endif %}">{{ "有" if result.cta.has_cta else "無" }}</span>
+                      <strong data-i18n="result.cta">{{ t('result.cta') }}</strong>
+                      <span class="diag-score {% if result.cta.has_cta %}is-high{% else %}is-low{% endif %}" data-i18n="{{ 'result.cta_yes' if result.cta.has_cta else 'result.cta_no' }}">{{ t('result.cta_yes') if result.cta.has_cta else t('result.cta_no') }}</span>
                     </div>
                     <p>{{ result.cta.advice }}</p>
                   </li>
                   <li>
                     <div class="diag-head">
-                      <strong>完播驅動力</strong>
-                      <span class="diag-score {% if result.retention.score == '高' %}is-high{% elif result.retention.score == '中' %}is-mid{% else %}is-low{% endif %}">{{ result.retention.score }}</span>
+                      <strong data-i18n="result.retention">{{ t('result.retention') }}</strong>
+                      <span class="diag-score {% if result.retention.score == '高' %}is-high{% elif result.retention.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.retention.score }}">{{ score_label(result.retention.score) }}</span>
                     </div>
                     <p>{{ result.retention.advice }}</p>
                   </li>
                 </ol>
                 {% if result.script %}
-                  <h3 class="transcript-title">轉寫／腳本文案</h3>
+                  <h3 class="transcript-title" data-i18n="result.transcript">{{ t('result.transcript') }}</h3>
                   <pre class="transcript">{{ result.script }}</pre>
                 {% endif %}
               </div>
@@ -319,11 +321,15 @@
             height="28"
             alt=""
           />
-          <span>採訊</span>
+          <span data-i18n="brand.name">{{ t('brand.name') }}</span>
         </span>
-        <span>短視頻腳本診斷 · Python / Flask</span>
+        <span data-i18n="footer.tagline">{{ t('footer.tagline') }}</span>
       </footer>
     </div>
+    <script id="i18n-data" type="application/json">{{ i18n_messages|tojson }}</script>
+    <script>
+      window.__CAIXUN_LANG__ = {{ lang|tojson }};
+    </script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>
