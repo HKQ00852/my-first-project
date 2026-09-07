@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="{{ html_lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}" />
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/logo-256.png') }}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" data-i18n="meta.description" content="{{ t('meta.description') }}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+SC:wght@600;700&family=Noto+Serif+TC:wght@600;700&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <title data-i18n="meta.title">{{ t('meta.title') }}</title>
+  </head>
+  <body>
+    <div class="page">
+      <header class="topbar">
+        <a class="logo" href="#top">
+          <img
+            class="logo-mark"
+            src="{{ url_for('static', filename='img/logo-256.png') }}"
+            width="36"
+            height="36"
+            alt=""
+          />
+          <span data-i18n="brand.name">{{ t('brand.name') }}</span>
+        </a>
+        <div class="topbar-right">
+          <nav class="nav" aria-label="Primary">
+            <a href="#how" data-i18n="nav.how">{{ t('nav.how') }}</a>
+            <a href="#fields" data-i18n="nav.fields">{{ t('nav.fields') }}</a>
+            <a class="nav-cta" href="#start" data-i18n="nav.start">{{ t('nav.start') }}</a>
+          </nav>
+          <div class="lang-switch" role="group" aria-label="{{ t('lang.label') }}">
+            <button type="button" class="lang-btn{% if lang == 'zh-Hant' %} is-active{% endif %}" data-lang="zh-Hant" data-i18n="lang.zh-Hant">粵</button>
+            <button type="button" class="lang-btn{% if lang == 'en' %} is-active{% endif %}" data-lang="en" data-i18n="lang.en">EN</button>
+            <button type="button" class="lang-btn{% if lang == 'zh-Hans' %} is-active{% endif %}" data-lang="zh-Hans" data-i18n="lang.zh-Hans">简</button>
+          </div>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-visual" aria-hidden="true">
+            <div class="hero-glow"></div>
+            <svg class="hero-mesh" viewBox="0 0 960 720" preserveAspectRatio="xMidYMid slice">
+              <defs>
+                <linearGradient id="lineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#111111" stop-opacity="0.08" />
+                  <stop offset="50%" stop-color="#3D5C57" stop-opacity="0.35" />
+                  <stop offset="100%" stop-color="#111111" stop-opacity="0.08" />
+                </linearGradient>
+                <radialGradient id="nodeGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#7A9A94" stop-opacity="0.9" />
+                  <stop offset="100%" stop-color="#7A9A94" stop-opacity="0" />
+                </radialGradient>
+              </defs>
+
+              <g class="doc-plane doc-a">
+                <rect x="560" y="90" width="220" height="420" rx="28" fill="#F7F7F5" stroke="#111111" stroke-opacity="0.16" />
+                <rect x="578" y="120" width="184" height="300" rx="12" fill="#EBEAE6" />
+                <circle cx="670" cy="270" r="28" fill="#3D5C57" fill-opacity="0.35" />
+                <polygon points="662,255 662,285 688,270" fill="#111111" fill-opacity="0.55" />
+                <rect x="590" y="440" width="90" height="8" rx="3" fill="#111111" fill-opacity="0.14" />
+                <rect x="590" y="458" width="140" height="7" rx="3" fill="#3D5C57" fill-opacity="0.4" />
+                <rect x="590" y="476" width="110" height="7" rx="3" fill="#111111" fill-opacity="0.1" />
+              </g>
+
+              <g class="doc-plane doc-b">
+                <rect x="470" y="160" width="180" height="320" rx="22" fill="#EBEAE6" stroke="#111111" stroke-opacity="0.1" />
+                <rect x="488" y="190" width="144" height="220" rx="10" fill="#F7F7F5" />
+                <rect x="500" y="430" width="70" height="7" rx="3" fill="#111111" fill-opacity="0.12" />
+                <rect x="500" y="448" width="110" height="7" rx="3" fill="#3D5C57" fill-opacity="0.35" />
+              </g>
+
+              <path class="flow-line" d="M560 280 C450 280, 380 240, 280 240" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+              <path class="flow-line delay-1" d="M560 340 C430 340, 360 360, 270 390" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+              <path class="flow-line delay-2" d="M540 220 C420 220, 340 180, 250 160" fill="none" stroke="url(#lineGrad)" stroke-width="2" />
+
+              <g class="data-nodes">
+                <circle class="node n1" cx="250" cy="160" r="8" fill="#111111" />
+                <circle class="node-pulse n1" cx="250" cy="160" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n2" cx="280" cy="240" r="8" fill="#3D5C57" />
+                <circle class="node-pulse n2" cx="280" cy="240" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n3" cx="250" cy="390" r="8" fill="#111111" />
+                <circle class="node-pulse n3" cx="250" cy="390" r="18" fill="url(#nodeGlow)" />
+                <circle class="node n4" cx="160" cy="290" r="7" fill="#3D5C57" />
+                <line x1="250" y1="160" x2="280" y2="240" stroke="#111111" stroke-opacity="0.25" stroke-width="1.5" />
+                <line x1="280" y1="240" x2="250" y2="390" stroke="#111111" stroke-opacity="0.25" stroke-width="1.5" />
+                <line x1="280" y1="240" x2="160" y2="290" stroke="#111111" stroke-opacity="0.25" stroke-width="1.5" />
+              </g>
+
+              <rect class="scan-line" x="578" y="120" width="184" height="3" fill="#3D5C57" opacity="0.7" />
+            </svg>
+          </div>
+
+          <div class="hero-copy">
+            <p class="brand-mark">
+              <img
+                class="brand-logo"
+                src="{{ url_for('static', filename='img/logo-256.png') }}"
+                width="112"
+                height="112"
+                data-i18n-alt="brand.logo_alt"
+                alt="{{ t('brand.logo_alt') }}"
+              />
+              <span class="brand-text">
+                <span class="brand-zh" data-i18n="brand.name">{{ t('brand.name') }}</span>
+                <span class="brand-en">CoiSeon</span>
+              </span>
+            </p>
+            <h1 data-i18n="hero.h1">{{ t('hero.h1') }}</h1>
+            <p class="lede" data-i18n="hero.lede">{{ t('hero.lede') }}</p>
+            <div class="cta-row">
+              <a class="btn primary" href="#start" data-i18n="hero.cta_primary">{{ t('hero.cta_primary') }}</a>
+              <a class="btn ghost" href="#how" data-i18n="hero.cta_secondary">{{ t('hero.cta_secondary') }}</a>
+            </div>
+          </div>
+        </section>
+
+        <section id="how" class="section how" data-reveal>
+          <p class="section-kicker" data-i18n="how.kicker">{{ t('how.kicker') }}</p>
+          <h2 data-i18n="how.h2">{{ t('how.h2') }}</h2>
+          <p class="section-lede" data-i18n="how.lede">{{ t('how.lede') }}</p>
+          <ol class="flow-steps">
+            <li>
+              <span class="step-num">01</span>
+              <div>
+                <h3 data-i18n="how.step1.title">{{ t('how.step1.title') }}</h3>
+                <p data-i18n="how.step1.body">{{ t('how.step1.body') }}</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">02</span>
+              <div>
+                <h3 data-i18n="how.step2.title">{{ t('how.step2.title') }}</h3>
+                <p data-i18n="how.step2.body">{{ t('how.step2.body') }}</p>
+              </div>
+            </li>
+            <li>
+              <span class="step-num">03</span>
+              <div>
+                <h3 data-i18n="how.step3.title">{{ t('how.step3.title') }}</h3>
+                <p data-i18n="how.step3.body">{{ t('how.step3.body') }}</p>
+              </div>
+            </li>
+          </ol>
+        </section>
+
+        <section id="fields" class="section fields" data-reveal>
+          <p class="section-kicker" data-i18n="fields.kicker">{{ t('fields.kicker') }}</p>
+          <h2 data-i18n="fields.h2">{{ t('fields.h2') }}</h2>
+          <p class="section-lede" data-i18n="fields.lede">{{ t('fields.lede') }}</p>
+          <ul class="field-list">
+            <li>
+              <strong data-i18n="fields.item1.title">{{ t('fields.item1.title') }}</strong>
+              <span data-i18n="fields.item1.body">{{ t('fields.item1.body') }}</span>
+            </li>
+            <li>
+              <strong data-i18n="fields.item2.title">{{ t('fields.item2.title') }}</strong>
+              <span data-i18n="fields.item2.body">{{ t('fields.item2.body') }}</span>
+            </li>
+            <li>
+              <strong data-i18n="fields.item3.title">{{ t('fields.item3.title') }}</strong>
+              <span data-i18n="fields.item3.body">{{ t('fields.item3.body') }}</span>
+            </li>
+            <li>
+              <strong data-i18n="fields.item4.title">{{ t('fields.item4.title') }}</strong>
+              <span data-i18n="fields.item4.body">{{ t('fields.item4.body') }}</span>
+            </li>
+          </ul>
+        </section>
+
+        <section id="start" class="section final-cta">
+          <h2 data-i18n="start.h2">{{ t('start.h2') }}</h2>
+          <p data-i18n="start.lede">{{ t('start.lede') }}</p>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <ul class="flash-list">
+                {% for category, message in messages %}
+                  <li class="flash {{ category }}">{{ message }}</li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          {% endwith %}
+
+          <form
+            class="diagnose-form"
+            action="{{ url_for('analyze') }}"
+            method="post"
+            enctype="multipart/form-data"
+          >
+            <input type="hidden" name="lang" id="form-lang" value="{{ lang }}" />
+            <div class="form-grid">
+              <label>
+                <span data-i18n="form.shop">{{ t('form.shop') }}</span>
+                <input
+                  name="shop_name"
+                  type="text"
+                  data-i18n-placeholder="form.shop_ph"
+                  placeholder="{{ t('form.shop_ph') }}"
+                  value="{{ form_data.shop_name if form_data else '' }}"
+                  required
+                />
+              </label>
+              <label>
+                <span data-i18n="form.industry">{{ t('form.industry') }}</span>
+                <input
+                  name="industry"
+                  type="text"
+                  data-i18n-placeholder="form.industry_ph"
+                  placeholder="{{ t('form.industry_ph') }}"
+                  value="{{ form_data.industry if form_data else '' }}"
+                  required
+                />
+              </label>
+              <label class="span-2">
+                <span data-i18n="form.district">{{ t('form.district') }}</span>
+                <input
+                  name="district"
+                  type="text"
+                  data-i18n-placeholder="form.district_ph"
+                  placeholder="{{ t('form.district_ph') }}"
+                  value="{{ form_data.district if form_data else '' }}"
+                />
+              </label>
+              <label class="span-2">
+                <span data-i18n="form.video">{{ t('form.video') }}</span>
+                <input
+                  name="video"
+                  type="file"
+                  accept="video/*,audio/*,.mp4,.mov,.webm,.mkv,.m4a,.mp3,.wav,.aac"
+                />
+              </label>
+              <label class="span-2">
+                <span data-i18n="form.script">{{ t('form.script') }}</span>
+                <textarea
+                  name="script"
+                  rows="8"
+                  data-i18n-placeholder="form.script_ph"
+                  placeholder="{{ t('form.script_ph') }}"
+                >{{ form_data.script if form_data else '' }}</textarea>
+              </label>
+            </div>
+            <button type="submit" class="btn primary" data-i18n="form.submit">{{ t('form.submit') }}</button>
+          </form>
+          <p class="fineprint" data-i18n="form.fineprint">{{ t('form.fineprint') }}</p>
+
+          {% if result %}
+            <div class="result-panel" id="result">
+              <div class="result-score">
+                <p class="result-score-label" data-i18n="result.priority">{{ t('result.priority') }}</p>
+                <p class="priority-text">{{ result.priority }}</p>
+                <p class="result-note">
+                  {{ result.shop_name }} · {{ result.industry }}
+                  {% if result.district %} · {{ result.district }}{% endif %}
+                  {% if result.filename %} · <span data-i18n="result.file">{{ t('result.file') }}</span> {{ result.filename }}{% endif %}
+                </p>
+                <p class="result-source">
+                  <span data-i18n="result.source">{{ t('result.source') }}</span>
+                  {% if result.source == 'zhipu' %}
+                    <span data-i18n="result.source_zhipu">{{ t('result.source_zhipu') }}</span>
+                  {% else %}
+                    <span data-i18n="result.source_local">{{ t('result.source_local') }}</span>
+                  {% endif %}
+                  · <span data-i18n="result.video_id">{{ t('result.video_id') }}</span> {{ result.video_id }}
+                </p>
+              </div>
+              <div class="result-keywords">
+                <h3 data-i18n="result.dims">{{ t('result.dims') }}</h3>
+                <ol class="diag-list">
+                  <li>
+                    <div class="diag-head">
+                      <strong data-i18n="result.hook">{{ t('result.hook') }}</strong>
+                      <span class="diag-score {% if result.hook.score == '高' %}is-high{% elif result.hook.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.hook.score }}">{{ score_label(result.hook.score) }}</span>
+                    </div>
+                    <p>{{ result.hook.advice }}</p>
+                  </li>
+                  <li>
+                    <div class="diag-head">
+                      <strong data-i18n="result.homogeneity">{{ t('result.homogeneity') }}</strong>
+                      <span class="diag-score {% if result.homogeneity.score == '高' %}is-high{% elif result.homogeneity.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.homogeneity.score }}">{{ score_label(result.homogeneity.score) }}</span>
+                    </div>
+                    <p>{{ result.homogeneity.advice }}</p>
+                  </li>
+                  <li>
+                    <div class="diag-head">
+                      <strong data-i18n="result.cta">{{ t('result.cta') }}</strong>
+                      <span class="diag-score {% if result.cta.has_cta %}is-high{% else %}is-low{% endif %}" data-i18n="{{ 'result.cta_yes' if result.cta.has_cta else 'result.cta_no' }}">{{ t('result.cta_yes') if result.cta.has_cta else t('result.cta_no') }}</span>
+                    </div>
+                    <p>{{ result.cta.advice }}</p>
+                  </li>
+                  <li>
+                    <div class="diag-head">
+                      <strong data-i18n="result.retention">{{ t('result.retention') }}</strong>
+                      <span class="diag-score {% if result.retention.score == '高' %}is-high{% elif result.retention.score == '中' %}is-mid{% else %}is-low{% endif %}" data-score="{{ result.retention.score }}">{{ score_label(result.retention.score) }}</span>
+                    </div>
+                    <p>{{ result.retention.advice }}</p>
+                  </li>
+                </ol>
+                {% if result.script %}
+                  <h3 class="transcript-title" data-i18n="result.transcript">{{ t('result.transcript') }}</h3>
+                  <pre class="transcript">{{ result.script }}</pre>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+
+      <footer class="footer">
+        <span class="logo">
+          <img
+            class="logo-mark"
+            src="{{ url_for('static', filename='img/logo-256.png') }}"
+            width="28"
+            height="28"
+            alt=""
+          />
+          <span data-i18n="brand.name">{{ t('brand.name') }}</span>
+        </span>
+        <span data-i18n="footer.tagline">{{ t('footer.tagline') }}</span>
+      </footer>
+    </div>
+    <script id="i18n-data" type="application/json">{{ i18n_messages|tojson }}</script>
+    <script>
+      window.__CAIXUN_LANG__ = {{ lang|tojson }};
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
