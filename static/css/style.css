@@ -766,6 +766,32 @@ input {
   color: var(--muted);
 }
 
+.lab-section {
+  max-width: 68rem;
+}
+
+.text-link {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.lab-frame-wrap {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1.25rem;
+}
+
+.lab-frame {
+  display: block;
+  width: 100%;
+  min-height: 70vh;
+  height: 820px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+}
+
 .footer {
   display: flex;
   flex-wrap: wrap;
@@ -801,6 +827,11 @@ input {
 @media (max-width: 640px) {
   .nav a:not(.nav-cta) {
     display: none;
+  }
+
+  .lab-frame {
+    min-height: 60vh;
+    height: 640px;
   }
 
   .hero {

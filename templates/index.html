@@ -34,6 +34,7 @@
         <nav class="nav">
           <a href="#how">流程</a>
           <a href="#fields">適用場景</a>
+          <a href="#lab">實驗報告</a>
           <a class="nav-cta" href="#start">開始分析</a>
         </nav>
       </header>
@@ -289,6 +290,23 @@
               </div>
             </div>
           {% endif %}
+        </section>
+
+        <section id="lab" class="section lab-section in">
+          <p class="section-kicker">實驗報告</p>
+          <h2>組員診斷實驗紀錄</h2>
+          <p class="section-lede">
+            以下嵌入組員匯出的 Jupyter 診斷報告（已去除金鑰）。也可
+            <a class="text-link" href="{{ url_for('static', filename='competition2.html') }}" target="_blank" rel="noopener">單獨開啟完整頁面</a>。
+          </p>
+          <div class="lab-frame-wrap">
+            <iframe
+              class="lab-frame"
+              src="{{ url_for('static', filename='competition2.html') }}"
+              title="採訊診斷實驗報告"
+              loading="lazy"
+            ></iframe>
+          </div>
         </section>
       </main>
 
