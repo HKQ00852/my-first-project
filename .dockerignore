@@ -1,0 +1,14 @@
+# Excludes for Docker build context
+.git
+.gitignore
+.env
+.venv
+venv
+__pycache__
+*.pyc
+*.db
+uploads
+diagnosis.db
+.cursor
+*.md
+.env.example
