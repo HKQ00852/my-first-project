@@ -109,12 +109,12 @@
                 <span class="brand-en">CaiXun</span>
               </span>
             </p>
-            <h1>診斷短視頻腳本，找出最該先改的一點。</h1>
+            <h1>上傳短視頻或貼腳本，直接完成診斷。</h1>
             <p class="lede">
-              貼上帶貨口播文案，採訊從開頭鉤子、同質化、行動號召與完播驅動力四個面向給出評分與建議。
+              支援上傳帶貨短視頻自動轉寫口播，再從開頭鉤子、同質化、行動號召與完播驅動力四個面向給出建議。
             </p>
             <div class="cta-row">
-              <a class="btn primary" href="#start">開始診斷腳本</a>
+              <a class="btn primary" href="#start">開始檢測視頻</a>
               <a class="btn ghost" href="#how">看診斷流程</a>
             </div>
           </div>
@@ -130,15 +130,15 @@
             <li>
               <span class="step-num">01</span>
               <div>
-                <h3>填入商家與腳本</h3>
-                <p>輸入店名、行業、區域，以及完整口播／分鏡文案。</p>
+                <h3>上傳視頻或貼腳本</h3>
+                <p>上傳你有權使用的短視頻檔案，或直接貼入口播／分鏡文案。</p>
               </div>
             </li>
             <li>
               <span class="step-num">02</span>
               <div>
-                <h3>四維診斷</h3>
-                <p>評估開頭鉤子、內容同質化、行動號召 CTA、完播驅動力。</p>
+                <h3>轉寫與四維診斷</h3>
+                <p>視頻會先轉成口播文字，再評估鉤子、同質化、CTA、完播驅動力。</p>
               </div>
             </li>
             <li>
@@ -178,9 +178,9 @@
         </section>
 
         <section id="start" class="section final-cta">
-          <h2>開始診斷一支腳本</h2>
+          <h2>開始檢測短視頻</h2>
           <p>
-            填入商家資訊與短視頻腳本，採訊會輸出四維診斷與優先改進建議。
+            上傳短視頻（自動轉寫口播），或貼上腳本；兩者擇一即可。
           </p>
 
           {% with messages = get_flashed_messages(with_categories=true) %}
@@ -193,7 +193,12 @@
             {% endif %}
           {% endwith %}
 
-          <form class="diagnose-form" action="{{ url_for('analyze') }}" method="post">
+          <form
+            class="diagnose-form"
+            action="{{ url_for('analyze') }}"
+            method="post"
+            enctype="multipart/form-data"
+          >
             <div class="form-grid">
               <label>
                 <span>店名</span>
@@ -225,19 +230,27 @@
                 />
               </label>
               <label class="span-2">
-                <span>短視頻腳本</span>
+                <span>上傳短視頻／音訊（選填）</span>
+                <input
+                  name="video"
+                  type="file"
+                  accept="video/*,audio/*,.mp4,.mov,.webm,.mkv,.m4a,.mp3,.wav,.aac"
+                />
+              </label>
+              <label class="span-2">
+                <span>或直接貼腳本（選填）</span>
                 <textarea
                   name="script"
                   rows="8"
-                  placeholder="貼上口播文案或分鏡腳本……"
-                  required
+                  placeholder="若不上傳視頻，可在此貼口播文案或分鏡腳本……"
                 >{{ form_data.script if form_data else '' }}</textarea>
               </label>
             </div>
             <button type="submit" class="btn primary">開始診斷</button>
           </form>
           <p class="fineprint">
-            設定環境變數 <code>ZHIPUAI_API_KEY</code> 可啟用智譜 AI；未設定時使用本地規則診斷。
+            直接檢測視頻需設定 <code>ZHIPUAI_API_KEY</code>（語音轉文字）。僅貼腳本時，無金鑰也可用本地規則診斷。
+            請只上傳你有權使用的內容。
           </p>
 
           {% if result %}
@@ -248,6 +261,7 @@
                 <p class="result-note">
                   {{ result.shop_name }} · {{ result.industry }}
                   {% if result.district %} · {{ result.district }}{% endif %}
+                  {% if result.filename %} · 檔案 {{ result.filename }}{% endif %}
                 </p>
                 <p class="result-source">
                   診斷來源：
@@ -287,6 +301,10 @@
                     <p>{{ result.retention.advice }}</p>
                   </li>
                 </ol>
+                {% if result.script %}
+                  <h3 class="transcript-title">轉寫／腳本文案</h3>
+                  <pre class="transcript">{{ result.script }}</pre>
+                {% endif %}
               </div>
             </div>
           {% endif %}

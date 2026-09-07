@@ -191,15 +191,21 @@ def diagnose(script: str) -> dict:
     return data
 
 
-def insert_video(shop_name: str, industry: str, district: str | None, script: str) -> int:
+def insert_video(
+    shop_name: str,
+    industry: str,
+    district: str | None,
+    script: str,
+    filename: str | None = None,
+) -> int:
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
         """
-        INSERT INTO videos (shop_name, industry, district, script)
-        VALUES (?, ?, ?, ?)
+        INSERT INTO videos (shop_name, industry, district, script, filename)
+        VALUES (?, ?, ?, ?, ?)
         """,
-        (shop_name, industry, district or "", script),
+        (shop_name, industry, district or "", script, filename or ""),
     )
     video_id = int(cursor.lastrowid)
     conn.commit()
@@ -244,9 +250,10 @@ def diagnose_and_save(
     industry: str,
     district: str | None,
     script: str,
+    filename: str | None = None,
 ) -> dict:
     data = diagnose(script)
-    video_id = insert_video(shop_name, industry, district, script)
+    video_id = insert_video(shop_name, industry, district, script, filename=filename)
     diagnosis_id = save_diagnosis(video_id, data)
     return {
         "video_id": video_id,
@@ -255,6 +262,7 @@ def diagnose_and_save(
         "industry": industry,
         "district": district or "",
         "script": script,
+        "filename": filename or "",
         "hook": data["hook"],
         "homogeneity": data["homogeneity"],
         "cta": data["cta"],
