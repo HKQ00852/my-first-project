@@ -29,6 +29,9 @@ ASR_CHUNK_SECONDS = 25
 ZHIPU_ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"
 OPENAI_ASR_ENDPOINT = "https://api.openai.com/v1/audio/transcriptions"
 
+_WHISPER_MODEL = None
+_WHISPER_MODEL_NAME: str | None = None
+
 
 def save_upload(file_storage) -> Path:
     if not file_storage or not file_storage.filename:
@@ -171,37 +174,71 @@ def transcribe_wav_chunk_openai(wav_path: Path, api_key: str) -> str:
     return text
 
 
+def transcribe_wav_local(wav_path: Path, lang: str | None = None) -> str:
+    """On-device Whisper — no cloud API; suitable for Hong Kong."""
+    global _WHISPER_MODEL, _WHISPER_MODEL_NAME
+    import whisper
+
+    model_name = config.whisper_model_name()
+    if _WHISPER_MODEL is None or _WHISPER_MODEL_NAME != model_name:
+        _WHISPER_MODEL = whisper.load_model(model_name)
+        _WHISPER_MODEL_NAME = model_name
+
+    bucket = config.lang_bucket(lang)
+    language = "en" if bucket == "en" else "zh"
+
+    result = _WHISPER_MODEL.transcribe(
+        str(wav_path),
+        language=language,
+        fp16=False,
+        verbose=False,
+    )
+    text = (result.get("text") or "").strip()
+    if not text:
+        raise RuntimeError("本地 Whisper 未識別到可用口播內容")
+    return text
+
+
 def _asr_chunk_fn(lang: str | None = None):
     provider = config.asr_provider(lang)
+    if provider == "local":
+        return lambda path: transcribe_wav_local(path, lang=lang)
     if provider == "openai":
         key = config.openai_key()
         if not key:
             raise RuntimeError(
-                "粵語／英文轉寫需要 OPENAI_API_KEY（Whisper）。"
-                "請在 .env 填入金鑰，切換到简体後可用智譜，或改貼腳本文案。"
+                "ASR_PROVIDER=openai 但未設定 OPENAI_API_KEY。"
+                "可改用本地 Whisper（ASR_PROVIDER=local），或改貼腳本。"
             )
         return lambda path: transcribe_wav_chunk_openai(path, key)
     key = config.zhipu_key()
     if not key:
         raise RuntimeError(
-            "普通话转写需要 ZHIPUAI_API_KEY。"
-            "请在 .env 填入密钥，切换到粵語後可用 OpenAI，或改贴脚本文案。"
+            "ASR_PROVIDER=zhipu 但未設定有效 ZHIPUAI_API_KEY。"
+            "可改用本地 Whisper（ASR_PROVIDER=local），或改貼腳本。"
         )
     return lambda path: transcribe_wav_chunk_zhipu(path, key)
 
 
 def transcribe_media(media_path: Path, lang: str | None = None) -> str:
-    chunk_fn = _asr_chunk_fn(lang)
+    provider = config.asr_provider(lang)
 
     with tempfile.TemporaryDirectory(prefix="caixun_asr_") as tmp:
         tmp_dir = Path(tmp)
         wav_path = tmp_dir / "audio.wav"
         extract_wav(media_path, wav_path)
-        chunks = split_wav(wav_path, tmp_dir / "chunks")
-        parts: list[str] = []
-        for chunk in chunks:
-            parts.append(chunk_fn(chunk))
-        script = "\n".join(p for p in parts if p).strip()
+
+        # Local Whisper can take the full wav; cloud APIs stay chunked.
+        if provider == "local":
+            script = transcribe_wav_local(wav_path, lang=lang).strip()
+        else:
+            chunk_fn = _asr_chunk_fn(lang)
+            chunks = split_wav(wav_path, tmp_dir / "chunks")
+            parts: list[str] = []
+            for chunk in chunks:
+                parts.append(chunk_fn(chunk))
+            script = "\n".join(p for p in parts if p).strip()
+
         if len(script) < 8:
             raise RuntimeError("未能從視頻中識別出足夠的口播內容，請換一支有清晰人聲的短視頻，或改貼腳本。")
         return script

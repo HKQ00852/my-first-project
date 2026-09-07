@@ -106,26 +106,36 @@ def hkbu_api_version() -> str:
     return _env("HKBU_API_VERSION", "2024-05-01-preview")
 
 
+def whisper_model_name() -> str:
+    return _env("WHISPER_MODEL", "base")
+
+
 def asr_provider(lang: str | None = None) -> str:
     """
-    Video ASR still needs OpenAI Whisper or Zhipu ASR.
-    HKBU GenAI gateway is chat-only (no Whisper endpoint found).
+    Default: local Whisper (works in Hong Kong without OpenAI).
+    Optional cloud: openai / zhipu when keys exist.
+    HKBU GenAI is chat-only and is not used for ASR.
     """
     bucket = lang_bucket(lang)
     legacy = _env("ASR_PROVIDER").lower()
+    default = "local"
     per_lang = {
-        "yue": _env("ASR_PROVIDER_YUE", legacy or "openai").lower(),
-        "cmn": _env("ASR_PROVIDER_CMN", legacy or "zhipu").lower(),
-        "en": _env("ASR_PROVIDER_EN", legacy or "openai").lower(),
+        "yue": _env("ASR_PROVIDER_YUE", legacy or default).lower(),
+        "cmn": _env("ASR_PROVIDER_CMN", legacy or default).lower(),
+        "en": _env("ASR_PROVIDER_EN", legacy or default).lower(),
     }
     provider = per_lang[bucket]
-    if provider not in {"zhipu", "openai"}:
-        provider = "openai" if bucket != "cmn" else "zhipu"
+    if provider not in {"local", "zhipu", "openai"}:
+        provider = default
 
-    if provider == "openai" and not openai_key() and zhipu_key():
-        return "zhipu"
-    if provider == "zhipu" and not zhipu_key() and openai_key():
-        return "openai"
+    if provider == "openai" and not openai_key():
+        if zhipu_key():
+            return "zhipu"
+        return "local"
+    if provider == "zhipu" and not zhipu_key():
+        if openai_key():
+            return "openai"
+        return "local"
     return provider
 
 
