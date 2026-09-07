@@ -1,14 +1,14 @@
 :root {
-  --ink: #0b3d3a;
-  --ink-soft: #1a5551;
-  --teal: #14b8a6;
-  --teal-bright: #5eead4;
-  --paper: #f4f7f6;
-  --mist: #e2ece9;
-  --fog: #c5d9d4;
-  --white: #fbfcfb;
-  --muted: #4a6b66;
-  --line: rgba(11, 61, 58, 0.12);
+  --ink: #111111;
+  --ink-soft: #2a2a2a;
+  --teal: #3d5c57;
+  --teal-bright: #7a9a94;
+  --paper: #f7f7f5;
+  --mist: #ebeae6;
+  --fog: #d4d2cc;
+  --white: #fcfcfb;
+  --muted: #5c5c57;
+  --line: rgba(17, 17, 17, 0.12);
 
   --font-display: 'Noto Serif TC', 'Songti TC', serif;
   --font-latin: 'Syne', sans-serif;
@@ -36,9 +36,9 @@ body {
   font-weight: 400;
   color: var(--ink);
   background:
-    radial-gradient(1200px 600px at 80% -10%, rgba(20, 184, 166, 0.16), transparent 55%),
-    radial-gradient(900px 500px at -10% 20%, rgba(11, 61, 58, 0.08), transparent 50%),
-    linear-gradient(180deg, #eef5f3 0%, var(--paper) 35%, #e8f1ef 100%);
+    radial-gradient(1200px 600px at 80% -10%, rgba(61, 92, 87, 0.12), transparent 55%),
+    radial-gradient(900px 500px at -10% 20%, rgba(17, 17, 17, 0.05), transparent 50%),
+    linear-gradient(180deg, #f3f2ef 0%, var(--paper) 35%, #efeee9 100%);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -84,10 +84,21 @@ input {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 1.35rem;
   letter-spacing: 0.08em;
+}
+
+.logo-mark {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 .nav {
@@ -129,8 +140,8 @@ input {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(105deg, rgba(238, 245, 243, 0.92) 0%, rgba(238, 245, 243, 0.72) 38%, rgba(238, 245, 243, 0.15) 62%, transparent 78%),
-    radial-gradient(ellipse 50% 40% at 70% 55%, rgba(94, 234, 212, 0.22), transparent 70%);
+    linear-gradient(105deg, rgba(243, 242, 239, 0.94) 0%, rgba(243, 242, 239, 0.74) 38%, rgba(243, 242, 239, 0.16) 62%, transparent 78%),
+    radial-gradient(ellipse 50% 40% at 70% 55%, rgba(122, 154, 148, 0.18), transparent 70%);
   pointer-events: none;
 }
 
@@ -254,25 +265,41 @@ input {
 }
 
 .brand-mark {
-  margin: 0 0 1.15rem;
+  margin: 0 0 1.35rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.15rem;
+  align-items: center;
+  gap: 1rem;
   color: var(--ink);
   line-height: 1;
+}
+
+.brand-logo {
+  width: clamp(4.5rem, 12vw, 7rem);
+  height: clamp(4.5rem, 12vw, 7rem);
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--white);
+  box-shadow: 0 0 0 1px var(--line);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
 }
 
 .brand-zh {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: clamp(3.2rem, 9vw, 5.5rem);
+  font-size: clamp(2.8rem, 8vw, 4.8rem);
   letter-spacing: 0.12em;
 }
 
 .brand-en {
   font-family: var(--font-latin);
   font-weight: 700;
-  font-size: clamp(0.95rem, 2vw, 1.15rem);
+  font-size: clamp(0.9rem, 2vw, 1.1rem);
   letter-spacing: 0.28em;
   text-transform: uppercase;
   color: var(--ink-soft);
@@ -532,9 +559,9 @@ input {
 }
 
 .flash.ok {
-  background: rgba(20, 184, 166, 0.12);
+  background: rgba(61, 92, 87, 0.1);
   color: var(--ink);
-  border: 1px solid rgba(20, 184, 166, 0.35);
+  border: 1px solid rgba(61, 92, 87, 0.28);
 }
 
 .flash.error {
@@ -713,8 +740,8 @@ input {
 
   .hero-glow {
     background:
-      linear-gradient(180deg, rgba(238, 245, 243, 0.55) 0%, rgba(238, 245, 243, 0.88) 48%, rgba(238, 245, 243, 0.96) 100%),
-      radial-gradient(ellipse 70% 40% at 60% 30%, rgba(94, 234, 212, 0.2), transparent 70%);
+      linear-gradient(180deg, rgba(243, 242, 239, 0.55) 0%, rgba(243, 242, 239, 0.88) 48%, rgba(243, 242, 239, 0.96) 100%),
+      radial-gradient(ellipse 70% 40% at 60% 30%, rgba(122, 154, 148, 0.16), transparent 70%);
   }
 
   .hero-copy {
@@ -722,8 +749,12 @@ input {
     padding-bottom: 3rem;
   }
 
+  .brand-mark {
+    gap: 0.75rem;
+  }
+
   .brand-zh {
-    font-size: clamp(2.8rem, 14vw, 3.6rem);
+    font-size: clamp(2.4rem, 12vw, 3.2rem);
   }
 
   .flow-steps li {
