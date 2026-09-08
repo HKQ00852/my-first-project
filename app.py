@@ -7,7 +7,7 @@ from flask import Flask, flash, make_response, render_template, request
 
 from diagnosis import diagnose_and_save, init_db
 from i18n import COOKIE_NAME, MESSAGES, get_locale, html_lang, score_label, t
-from media import save_upload, transcribe_media
+from media import media_kind, save_upload, transcribe_media
 
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY", "caixun-demo-dev-key")
@@ -92,6 +92,7 @@ def analyze():
             script,
             filename=uploaded_name or None,
             lang=lang,
+            media_kind=media_kind(uploaded_name or None),
         )
     except Exception as exc:  # noqa: BLE001 - surface processing errors to UI
         flash(f"{t('flash.fail_prefix', lang)}{exc}", "error")

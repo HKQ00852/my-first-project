@@ -14,16 +14,23 @@ import config
 UPLOAD_DIR = Path(__file__).resolve().parent / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-ALLOWED_SUFFIXES = {
-    ".mp4",
-    ".mov",
-    ".webm",
-    ".mkv",
-    ".m4a",
-    ".mp3",
-    ".wav",
-    ".aac",
-}
+VIDEO_SUFFIXES = {".mp4", ".mov", ".webm", ".mkv"}
+AUDIO_SUFFIXES = {".m4a", ".mp3", ".wav", ".aac"}
+ALLOWED_SUFFIXES = VIDEO_SUFFIXES | AUDIO_SUFFIXES
+
+
+def media_kind(filename: str | None) -> str:
+    """video | audio | script — used so diagnosis does not judge shots on audio/text."""
+    if not filename:
+        return "script"
+    suffix = Path(filename).suffix.lower()
+    if suffix in AUDIO_SUFFIXES:
+        return "audio"
+    if suffix in VIDEO_SUFFIXES:
+        return "video"
+    return "script"
+
+
 MAX_UPLOAD_BYTES = 80 * 1024 * 1024  # 80MB
 ASR_CHUNK_SECONDS = 25
 ZHIPU_ASR_ENDPOINT = "https://open.bigmodel.cn/api/paas/v4/audio/transcriptions"

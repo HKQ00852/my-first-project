@@ -11,34 +11,126 @@ import config
 
 DB_PATH = Path(__file__).resolve().parent / "diagnosis.db"
 
-DIAGNOSE_PROMPT = """你是一个短视频诊断专家，专门帮小商家分析带货视频脚本的问题。
-
-请按以下 4 个维度分析这段脚本，每个维度给出「高/中/低」评分和一句具体建议。
+def diagnose_prompt(media_kind: str = "script") -> str:
+    """Build the diagnosis prompt. Audio/script must not judge camera shots."""
+    kind = media_kind if media_kind in {"video", "audio", "script"} else "script"
+    if kind == "video":
+        extra = """【输入类型】带画面的短视频（已转写成口播文字）。
+可以评价镜头、出镜、画面节奏；建议须能从文案合理推断，不要虚构没出现的画面细节。
 
 【开头钩子】
-- 前 3 秒是否有悬念？反常识画面？提问？冲突？还是直接介绍产品？
+- 前 3 秒口播／画面是否有悬念、提问、冲突，还是直接报产品？
 
 【内容同质化】
-- 是否只是产品展示+价格，缺少人物出镜、场景故事、人设？
-- 注意：同质化分数「高」表示同质化严重（更需要改进）。
+- 是否只是产品展示+价格，缺少人物、场景故事、人设？
+- 同质化分数「高」表示同质化严重（更需要改进）。
 
 【行动号召 CTA】
 - 结尾是否有明确引导（评论/关注/到店/点击链接）？
 
 【完播驱动力】
-- 中段是否有节奏变化（音乐、镜头切换、信息密度）？
-
-【重要】你必须且只能输出以下JSON格式，不要加任何其他文字、解释或markdown标记：
-{
-  "hook": {"score": "高/中/低", "advice": "建议"},
-  "homogeneity": {"score": "高/中/低", "advice": "建议"},
-  "cta": {"has_cta": true/false, "advice": "建议"},
-  "retention": {"score": "高/中/低", "advice": "建议"},
-  "priority": "最优先改这一点"
-}
-
-待诊断脚本：
+- 中段口播信息密度如何；可结合「镜头切换／画面节奏」给建议。
 """
+    else:
+        source = "录音转写的口播" if kind == "audio" else "用户粘贴的脚本文案"
+        extra = f"""【输入类型】{source}。没有画面、没有镜头。
+【严禁】建议里不得出现：镜头、出镜、画面、分镜、运镜、切镜、特写、空镜、景别。
+完播维度只评口播节奏、停顿、信息点、语气变化，不要叫用户改镜头。
+
+【开头钩子】
+- 前几句口播是否有提问、悬念、反差，还是直接报产品名／价格？
+
+【内容同质化】
+- 是否只有卖点堆砌+报价，缺少人物故事、场景描述、老板人设？
+- 同质化分数「高」表示同质化严重（更需要改进）。
+
+【行动号召 CTA】
+- 结尾是否有明确引导（评论/关注/到店/点击链接）？
+
+【完播驱动力】
+- 中段口播是否太平、信息是否过密或过疏、有没有节奏停顿或小反转？只评声音／文案，不评画面。
+"""
+
+    return f"""你是一个短视频带货内容诊断专家，只根据给定文字做分析。
+
+{extra}
+【重要】你必须且只能输出以下JSON格式，不要加任何其他文字、解释或markdown标记：
+{{
+  "hook": {{"score": "高/中/低", "advice": "建议"}},
+  "homogeneity": {{"score": "高/中/低", "advice": "建议"}},
+  "cta": {{"has_cta": true/false, "advice": "建议"}},
+  "retention": {{"score": "高/中/低", "advice": "建议"}},
+  "priority": "最优先改这一点"
+}}
+
+待诊断文本：
+"""
+
+
+_VISUAL_TERMS = (
+    "镜头切换",
+    "鏡頭切換",
+    "镜头",
+    "鏡頭",
+    "出镜",
+    "出鏡",
+    "画面",
+    "畫面",
+    "分镜",
+    "分鏡",
+    "运镜",
+    "運鏡",
+    "切镜",
+    "切鏡",
+    "特写",
+    "特寫",
+    "空镜",
+    "空鏡",
+    "景别",
+    "景別",
+)
+
+
+def scrub_visual_advice(data: dict, media_kind: str) -> dict:
+    """Strip camera/shot language when input is audio or pasted script."""
+    if media_kind == "video":
+        return data
+
+    replacements = (
+        ("镜头切换", "语气节奏变化"),
+        ("鏡頭切換", "語氣節奏變化"),
+        ("反差画面", "反差口播"),
+        ("反差畫面", "反差口播"),
+        ("反常识画面", "反差口播"),
+        ("反常識畫面", "反差口播"),
+        ("人物出镜", "人物故事"),
+        ("人物出鏡", "人物故事"),
+        ("出镜", "人物故事"),
+        ("出鏡", "人物故事"),
+        ("镜头", "节奏"),
+        ("鏡頭", "節奏"),
+        ("画面", "描述"),
+        ("畫面", "描述"),
+        ("分镜", "文案结构"),
+        ("分鏡", "文案結構"),
+    )
+
+    def scrub(text: str) -> str:
+        out = text or ""
+        for old, new in replacements:
+            out = out.replace(old, new)
+        for term in _VISUAL_TERMS:
+            out = out.replace(term, "")
+        return out
+
+    for key in ("hook", "homogeneity", "retention"):
+        if isinstance(data.get(key), dict) and "advice" in data[key]:
+            data[key]["advice"] = scrub(str(data[key]["advice"]))
+    if isinstance(data.get("cta"), dict) and "advice" in data["cta"]:
+        data["cta"]["advice"] = scrub(str(data["cta"]["advice"]))
+    if "priority" in data:
+        data["priority"] = scrub(str(data["priority"]))
+    return data
 
 
 def get_connection() -> sqlite3.Connection:
@@ -120,7 +212,7 @@ def extract_json(raw_output: str | None) -> dict | None:
         return None
 
 
-def diagnose_with_hkbu(script: str) -> str:
+def diagnose_with_hkbu(script: str, prompt: str) -> str:
     api_key = config.hkbu_key()
     if not api_key:
         raise RuntimeError("缺少環境變數 HKBU_API_KEY（浸會 GenAI）")
@@ -138,7 +230,7 @@ def diagnose_with_hkbu(script: str) -> str:
             "api-key": api_key,
         },
         json={
-            "messages": [{"role": "user", "content": DIAGNOSE_PROMPT + script}],
+            "messages": [{"role": "user", "content": prompt + script}],
             "temperature": 0.3,
             "max_tokens": 1200,
         },
@@ -153,7 +245,7 @@ def diagnose_with_hkbu(script: str) -> str:
         raise RuntimeError("HKBU GenAI 返回格式異常") from exc
 
 
-def diagnose_with_zhipu(script: str) -> str:
+def diagnose_with_zhipu(script: str, prompt: str) -> str:
     api_key = config.zhipu_key()
     if not api_key:
         raise RuntimeError("缺少環境變數 ZHIPUAI_API_KEY")
@@ -163,7 +255,7 @@ def diagnose_with_zhipu(script: str) -> str:
     client = ZhipuAI(api_key=api_key)
     response = client.chat.completions.create(
         model=config.zhipu_chat_model(),
-        messages=[{"role": "user", "content": DIAGNOSE_PROMPT + script}],
+        messages=[{"role": "user", "content": prompt + script}],
     )
     return response.choices[0].message.content or ""
 
@@ -171,6 +263,7 @@ def diagnose_with_zhipu(script: str) -> str:
 def diagnose_with_openai_compatible(
     script: str,
     *,
+    prompt: str,
     api_key: str,
     base_url: str,
     model: str,
@@ -187,7 +280,7 @@ def diagnose_with_openai_compatible(
         json={
             "model": model,
             "temperature": 0.3,
-            "messages": [{"role": "user", "content": DIAGNOSE_PROMPT + script}],
+            "messages": [{"role": "user", "content": prompt + script}],
         },
         timeout=120,
     )
@@ -200,7 +293,7 @@ def diagnose_with_openai_compatible(
         raise RuntimeError("診斷 API 返回格式異常") from exc
 
 
-def local_fallback_diagnose(script: str) -> dict:
+def local_fallback_diagnose(script: str, media_kind: str = "script") -> dict:
     """Rule-based fallback when API key is unavailable."""
     text = script.strip()
     length = len(text)
@@ -214,31 +307,33 @@ def local_fallback_diagnose(script: str) -> dict:
     homogeneity_score = "低" if has_story else ("中" if length > 80 else "高")
     retention_score = "高" if length > 120 else ("中" if length > 60 else "低")
 
+    visual = media_kind == "video"
+    hook_advice = (
+        ("前三秒加入提问或反差画面，避免直接报产品名。" if visual else "开头用提问或反差口播，避免直接报产品名。")
+        if hook_score != "高"
+        else "开头已有钩子，可再压缩到更明确的一句悬念。"
+    )
+    homo_advice = (
+        ("加入人物出镜与到店场景，减少纯卖点罗列。" if visual else "加入人物故事或到店经历，减少纯卖点罗列。")
+        if homogeneity_score == "高"
+        else "已有一定场景感，可强化老板人设或顾客互动。"
+    )
+    retention_advice = (
+        ("中段增加镜头切换或信息节点，避免平铺直叙。" if visual else "中段加一个信息节点或语气停顿，避免平铺直叙。")
+        if retention_score != "高"
+        else ("节奏信息不错，可在中段再设一个小反转。" if visual else "口播节奏不错，可在中段再设一个小反转。")
+    )
+
     return {
-        "hook": {
-            "score": hook_score,
-            "advice": "前三秒加入提问或反差画面，避免直接报产品名。"
-            if hook_score != "高"
-            else "开头已有钩子，可再压缩到更明确的一句悬念。",
-        },
-        "homogeneity": {
-            "score": homogeneity_score,
-            "advice": "加入人物出镜与到店场景，减少纯卖点罗列。"
-            if homogeneity_score == "高"
-            else "已有一定场景感，可强化老板人设或顾客互动。",
-        },
+        "hook": {"score": hook_score, "advice": hook_advice},
+        "homogeneity": {"score": homogeneity_score, "advice": homo_advice},
         "cta": {
             "has_cta": has_cta,
             "advice": "结尾补一句明确行动号召，例如评论关键词或到店引导。"
             if not has_cta
             else "已有行动号召，可让CTA更具体（时间/优惠/动作）。",
         },
-        "retention": {
-            "score": retention_score,
-            "advice": "中段增加镜头切换或信息节点，避免平铺直叙。"
-            if retention_score != "高"
-            else "节奏信息不错，可在中段再设一个小反转。",
-        },
+        "retention": {"score": retention_score, "advice": retention_advice},
         "priority": "先改开头钩子"
         if hook_score == "低"
         else ("先补行动号召" if not has_cta else "先降同质化、补场景故事"),
@@ -246,21 +341,23 @@ def local_fallback_diagnose(script: str) -> dict:
     }
 
 
-def diagnose(script: str, lang: str | None = None) -> dict:
+def diagnose(script: str, lang: str | None = None, media_kind: str = "script") -> dict:
     provider = config.diagnosis_provider(lang)
+    prompt = diagnose_prompt(media_kind)
 
     if provider == "local":
-        return local_fallback_diagnose(script)
+        return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
 
     if provider == "hkbu":
-        raw = diagnose_with_hkbu(script)
+        raw = diagnose_with_hkbu(script, prompt)
         source = "hkbu"
     elif provider == "zhipu":
-        raw = diagnose_with_zhipu(script)
+        raw = diagnose_with_zhipu(script, prompt)
         source = "zhipu"
     elif provider == "openai":
         raw = diagnose_with_openai_compatible(
             script,
+            prompt=prompt,
             api_key=config.openai_key(),
             base_url="https://api.openai.com/v1",
             model=config.openai_chat_model(),
@@ -269,19 +366,20 @@ def diagnose(script: str, lang: str | None = None) -> dict:
     elif provider == "deepseek":
         raw = diagnose_with_openai_compatible(
             script,
+            prompt=prompt,
             api_key=config.deepseek_key(),
             base_url="https://api.deepseek.com/v1",
             model=config.deepseek_chat_model(),
         )
         source = "deepseek"
     else:
-        return local_fallback_diagnose(script)
+        return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
 
     data = extract_json(raw)
     if data is None:
         raise ValueError("AI 診斷結果無法解析為 JSON")
     data["source"] = source
-    return data
+    return scrub_visual_advice(data, media_kind)
 
 
 def insert_video(
@@ -345,8 +443,9 @@ def diagnose_and_save(
     script: str,
     filename: str | None = None,
     lang: str | None = None,
+    media_kind: str = "script",
 ) -> dict:
-    data = diagnose(script, lang=lang)
+    data = diagnose(script, lang=lang, media_kind=media_kind)
     video_id = insert_video(shop_name, industry, district, script, filename=filename)
     diagnosis_id = save_diagnosis(video_id, data)
     return {
