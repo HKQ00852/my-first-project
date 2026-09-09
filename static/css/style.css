@@ -763,6 +763,66 @@ body[data-lang="en"] {
   color: var(--ink);
 }
 
+.radar-card {
+  margin: 1.35rem 0 0;
+  padding: 0;
+}
+
+.radar-title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.radar-note {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--muted);
+  max-width: 22rem;
+}
+
+.radar-svg {
+  display: block;
+  width: min(100%, 340px);
+  height: auto;
+  margin: 0.35rem 0 0;
+}
+
+.radar-svg .radar-ring {
+  fill: rgba(61, 92, 87, 0.04);
+  stroke: rgba(17, 17, 17, 0.12);
+  stroke-width: 1;
+}
+
+.radar-svg .radar-axis {
+  stroke: rgba(17, 17, 17, 0.16);
+  stroke-width: 1;
+}
+
+.radar-svg .radar-fill {
+  fill: rgba(61, 92, 87, 0.28);
+  stroke: var(--teal);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.radar-svg .radar-dot {
+  fill: var(--ink);
+  stroke: #fcfcfb;
+  stroke-width: 1.5;
+}
+
+.radar-svg .radar-label {
+  fill: var(--ink-soft);
+  font-family: var(--font-body);
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .diag-list {
   list-style: none;
   margin: 0;

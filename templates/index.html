@@ -274,6 +274,27 @@
                   {% endif %}
                   · <span data-i18n="result.video_id">{{ t('result.video_id') }}</span> {{ result.video_id }}
                 </p>
+                {% set hook_lv = 3 if result.hook.score == '高' else 2 if result.hook.score == '中' else 1 %}
+                {% set homo_lv = 3 if result.homogeneity.score == '高' else 2 if result.homogeneity.score == '中' else 1 %}
+                {% set cta_lv = 3 if result.cta.has_cta else 1 %}
+                {% set ret_lv = 3 if result.retention.score == '高' else 2 if result.retention.score == '中' else 1 %}
+                <figure
+                  class="radar-card"
+                  id="capability-radar"
+                  data-hook="{{ hook_lv }}"
+                  data-distinct="{{ 4 - homo_lv }}"
+                  data-cta="{{ cta_lv }}"
+                  data-retention="{{ ret_lv }}"
+                >
+                  <figcaption>
+                    <span class="radar-title" data-i18n="result.radar">{{ t('result.radar') }}</span>
+                    <small class="radar-note" data-i18n="result.radar_note">{{ t('result.radar_note') }}</small>
+                  </figcaption>
+                  <svg class="radar-svg" viewBox="0 0 360 340" role="img" aria-labelledby="radar-caption-title radar-caption-desc">
+                    <title id="radar-caption-title" data-i18n="result.radar">{{ t('result.radar') }}</title>
+                    <desc id="radar-caption-desc" data-i18n="result.radar_note">{{ t('result.radar_note') }}</desc>
+                  </svg>
+                </figure>
               </div>
               <div class="result-keywords">
                 <h3 data-i18n="result.dims">{{ t('result.dims') }}</h3>

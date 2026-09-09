@@ -87,6 +87,94 @@ function applyLanguage(lang) {
 
   // Prefer SC fonts when Simplified is active.
   document.body.dataset.lang = code;
+  drawCapabilityRadar();
+}
+
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function wrapRadarLabel(text) {
+  const raw = String(text || "").trim();
+  if (!raw) return [""];
+  if (raw.length <= 6 || !/\s/.test(raw)) return [raw];
+  const parts = raw.split(/\s+/);
+  if (parts.length === 1) return [raw];
+  const mid = Math.ceil(parts.length / 2);
+  return [parts.slice(0, mid).join(" "), parts.slice(mid).join(" ")];
+}
+
+function drawCapabilityRadar() {
+  const root = document.getElementById("capability-radar");
+  if (!root) return;
+  const svg = root.querySelector("svg.radar-svg");
+  if (!svg) return;
+
+  const lang = window.__CAIXUN_LANG__ || "zh-Hant";
+  const values = [
+    Number(root.dataset.hook) || 1,
+    Number(root.dataset.distinct) || 1,
+    Number(root.dataset.cta) || 1,
+    Number(root.dataset.retention) || 1,
+  ].map((n) => Math.min(3, Math.max(1, n)));
+  const labels = [
+    t("result.hook", lang),
+    t("result.radar_distinct", lang),
+    t("result.radar_cta", lang),
+    t("result.retention", lang),
+  ];
+
+  const cx = 180;
+  const cy = 168;
+  const rMax = 100;
+  const levels = 3;
+  const n = 4;
+  const start = -Math.PI / 2;
+
+  const point = (index, radius) => {
+    const angle = start + (Math.PI * 2 * index) / n;
+    return [cx + radius * Math.cos(angle), cy + radius * Math.sin(angle)];
+  };
+  const poly = (radius) =>
+    Array.from({ length: n }, (_, i) => point(i, radius).map((v) => v.toFixed(1)).join(",")).join(" ");
+
+  let rings = "";
+  for (let lv = 1; lv <= levels; lv += 1) {
+    rings += `<polygon class="radar-ring" points="${poly((rMax * lv) / levels)}"></polygon>`;
+  }
+
+  let axes = "";
+  let dots = "";
+  const valuePts = [];
+  for (let i = 0; i < n; i += 1) {
+    const [x, y] = point(i, rMax);
+    axes += `<line class="radar-axis" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"></line>`;
+    const [vx, vy] = point(i, (rMax * values[i]) / levels);
+    valuePts.push(`${vx.toFixed(1)},${vy.toFixed(1)}`);
+    dots += `<circle class="radar-dot" cx="${vx.toFixed(1)}" cy="${vy.toFixed(1)}" r="3.5"></circle>`;
+  }
+
+  let labelMarkup = "";
+  for (let i = 0; i < n; i += 1) {
+    const [lx, ly] = point(i, rMax + 28);
+    const lines = wrapRadarLabel(labels[i]);
+    const startY = ly - ((lines.length - 1) * 7);
+    const tspans = lines
+      .map(
+        (line, idx) =>
+          `<tspan x="${lx.toFixed(1)}" dy="${idx === 0 ? 0 : 14}">${escapeXml(line)}</tspan>`,
+      )
+      .join("");
+    labelMarkup += `<text class="radar-label" x="${lx.toFixed(1)}" y="${startY.toFixed(1)}" text-anchor="middle">${tspans}</text>`;
+  }
+
+  const title = svg.querySelector("title");
+  const desc = svg.querySelector("desc");
+  svg.innerHTML = `${title ? title.outerHTML : ""}${desc ? desc.outerHTML : ""}${rings}${axes}<polygon class="radar-fill" points="${valuePts.join(" ")}"></polygon>${dots}${labelMarkup}`;
 }
 
 document.querySelectorAll("[data-reveal]").forEach((section) => {
