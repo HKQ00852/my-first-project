@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import time
 from pathlib import Path
 
 import requests
@@ -223,26 +224,36 @@ def diagnose_with_hkbu(script: str, prompt: str) -> str:
         f"{config.hkbu_base_url().rstrip('/')}/deployments/{deployment}"
         f"/chat/completions?api-version={version}"
     )
-    response = requests.post(
-        url,
-        headers={
-            "Content-Type": "application/json",
-            "api-key": api_key,
-        },
-        json={
-            "messages": [{"role": "user", "content": prompt + script}],
-            "temperature": 0.3,
-            "max_tokens": 1200,
-        },
-        timeout=120,
-    )
-    if response.status_code >= 400:
-        raise RuntimeError(f"HKBU GenAI 失敗（{response.status_code}）：{response.text[:300]}")
-    payload = response.json()
-    try:
-        return payload["choices"][0]["message"]["content"] or ""
-    except (KeyError, IndexError, TypeError) as exc:
-        raise RuntimeError("HKBU GenAI 返回格式異常") from exc
+    last_error: Exception | None = None
+    for attempt in range(3):
+        response = requests.post(
+            url,
+            headers={
+                "Content-Type": "application/json",
+                "api-key": api_key,
+            },
+            json={
+                "messages": [{"role": "user", "content": prompt + script}],
+                "temperature": 0.3,
+                "max_tokens": 1200,
+            },
+            timeout=120,
+        )
+        if response.status_code >= 400:
+            last_error = RuntimeError(
+                f"HKBU GenAI 失敗（{response.status_code}）：{response.text[:300]}"
+            )
+            time.sleep(0.7 * (attempt + 1))
+            continue
+        payload = response.json()
+        try:
+            return payload["choices"][0]["message"]["content"] or ""
+        except (KeyError, IndexError, TypeError) as exc:
+            last_error = RuntimeError("HKBU GenAI 返回格式異常")
+            last_error.__cause__ = exc
+            time.sleep(0.7 * (attempt + 1))
+            continue
+    raise last_error or RuntimeError("HKBU GenAI 失敗")
 
 
 def diagnose_with_zhipu(script: str, prompt: str) -> str:
@@ -341,45 +352,60 @@ def local_fallback_diagnose(script: str, media_kind: str = "script") -> dict:
     }
 
 
-def diagnose(script: str, lang: str | None = None, media_kind: str = "script") -> dict:
-    provider = config.diagnosis_provider(lang)
-    prompt = diagnose_prompt(media_kind)
-
-    if provider == "local":
-        return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
-
+def _diagnose_raw(provider: str, script: str, prompt: str) -> str:
     if provider == "hkbu":
-        raw = diagnose_with_hkbu(script, prompt)
-        source = "hkbu"
-    elif provider == "zhipu":
-        raw = diagnose_with_zhipu(script, prompt)
-        source = "zhipu"
-    elif provider == "openai":
-        raw = diagnose_with_openai_compatible(
+        return diagnose_with_hkbu(script, prompt)
+    if provider == "zhipu":
+        return diagnose_with_zhipu(script, prompt)
+    if provider == "openai":
+        return diagnose_with_openai_compatible(
             script,
             prompt=prompt,
             api_key=config.openai_key(),
             base_url="https://api.openai.com/v1",
             model=config.openai_chat_model(),
         )
-        source = "openai"
-    elif provider == "deepseek":
-        raw = diagnose_with_openai_compatible(
+    if provider == "deepseek":
+        return diagnose_with_openai_compatible(
             script,
             prompt=prompt,
             api_key=config.deepseek_key(),
             base_url="https://api.deepseek.com/v1",
             model=config.deepseek_chat_model(),
         )
-        source = "deepseek"
-    else:
-        return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
+    raise RuntimeError(f"未知診斷供應商：{provider}")
 
-    data = extract_json(raw)
-    if data is None:
-        raise ValueError("AI 診斷結果無法解析為 JSON")
-    data["source"] = source
-    return scrub_visual_advice(data, media_kind)
+
+def diagnose(script: str, lang: str | None = None, media_kind: str = "script") -> dict:
+    preferred = config.diagnosis_provider(lang)
+    prompt = diagnose_prompt(media_kind)
+    chain: list[str] = []
+    for name in (preferred, "hkbu", "zhipu", "local"):
+        if name and name not in chain:
+            chain.append(name)
+
+    for provider in chain:
+        if provider == "local":
+            return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
+        if provider == "hkbu" and not config.hkbu_key():
+            continue
+        if provider == "zhipu" and not config.zhipu_key():
+            continue
+        if provider == "openai" and not config.openai_key():
+            continue
+        if provider == "deepseek" and not config.deepseek_key():
+            continue
+        try:
+            raw = _diagnose_raw(provider, script, prompt)
+            data = extract_json(raw)
+            if data is None:
+                continue
+            data["source"] = provider
+            return scrub_visual_advice(data, media_kind)
+        except Exception:  # noqa: BLE001 - try next provider so the demo still returns
+            continue
+
+    return scrub_visual_advice(local_fallback_diagnose(script, media_kind), media_kind)
 
 
 def insert_video(
